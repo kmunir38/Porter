@@ -23,13 +23,13 @@ Auth::routes([
   'verify' => false, // Email Verification Routes...
 ]);
 
-Route::get('/', function () {
-    return redirect('home');
-});
+// Route::get('/', function () {
+//     return redirect('home');
+// });
 
-Route::get('/home', function () {
-    return redirect('admin/dashboard');
-});
+// Route::get('/home', function () {
+//     return redirect('admin/dashboard');
+// });
 
 Route::group(['namespace' => 'Admin', 'prefix' => 'admin', 'middleware' => ['auth']], function(){
 
@@ -130,6 +130,15 @@ Route::group(['namespace' => 'Admin', 'prefix' => 'admin', 'middleware' => ['aut
         Route::get('category/{id}/edit', 'IndexController@edit')->name('category.edit')->middleware('permission:category-edit');
         Route::put('category/{id}', 'IndexController@update')->name('category.update')->middleware('permission:category-edit');
         Route::any('category/{id}/destroy', 'IndexController@destroy')->name('category.destroy')->middleware('permission:category-delete');
+    });
+
+    Route::group(['namespace' => 'Coupon'], function (){
+        Route::get('coupons', 'IndexController@index')->name('coupon.index')->middleware('permission:coupon-list');
+        Route::get('coupons/create', 'IndexController@create')->name('coupon.create')->middleware('permission:coupon-create');
+        Route::post('coupons', 'IndexController@store')->name('coupon.store')->middleware('permission:coupon-create');
+        Route::get('coupons/{id}/edit', 'IndexController@edit')->name('coupon.edit')->middleware('permission:coupon-edit');
+        Route::put('coupons/{id}', 'IndexController@update')->name('coupon.update')->middleware('permission:coupon-edit');
+        Route::any('coupons/{id}/destroy', 'IndexController@destroy')->name('coupon.destroy')->middleware('permission:coupon-delete');
     });
 
     Route::group(['namespace' => 'Content'], function() {

@@ -7,14 +7,17 @@ use App\Http\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use App\Http\Resources\Frontend\Customer\ViewDeserts as ViewDesertPage;
 use App\Http\Resources\Frontend\Order\OrderDetails as ViewDetails;
+use App\Http\Resources\Frontend\Home\HomePage as GetHomeScreen;
 use App\Order;
+use App\User;
 use App\OrderItem;
 use App\Item;
 use Auth;
-
+use DB;
 class IndexController extends Controller
 {
 	use ApiResponse;
+
     public function orderHistory()
     {
     	$items = Order::where('user_id', Auth::user()->id)->where('order_status', 'completed')->get();
@@ -54,6 +57,22 @@ class IndexController extends Controller
         $result = ViewDetails::collection($item)->toArray($request);
 
         if ($item) {
+            return $this->apiSuccessMessageResponse('success', $result);
+        } else {
+            return response()->json([
+                'status' => 0,
+                'message' => 'No Record Found',
+                'data' => []
+            ]);
+        }
+    }
+
+    public function home(Request $request)
+    {
+       $user = Item::with('restaurent')->latest()->get();
+       // return $user;
+       $result = GetHomeScreen::collection($user)->toArray($request);
+        if ($user) {
             return $this->apiSuccessMessageResponse('success', $result);
         } else {
             return response()->json([

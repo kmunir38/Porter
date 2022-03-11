@@ -8,7 +8,7 @@
           <div class="col-12">
             <div class="card">
               <div class="card-header">
-                <h4>Edit Restaurant</h4>
+                <h4>Edit Category</h4>
               </div>
               {!! Form::model($category, ['method' => 'PUT','route' => ['category.update', $category->id]]) !!}
                 <div class="card-body">

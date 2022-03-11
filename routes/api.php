@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
+    // Route::get('app', 'Coupon\IndexController@index');
 
 	// Customer Auth Start Created By MYTECH MAESTRO
 	Route::group(['prefix' => 'customer'], function() {
@@ -48,10 +49,9 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
             Route::get('order-history', 'IndexController@orderHistory');
             Route::get('desserts', 'IndexController@desserts');
             Route::get('order-details', 'IndexController@orderDetails');
-        });
-        
-        Route::post('addRemove', 'AuthController@AddRemove');        
-
+            Route::get('home', 'IndexController@home');
+        });        
+            Route::post('addRemove', 'AuthController@AddRemove');  
       });
     });
 
@@ -116,8 +116,17 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
             {
                 Route::get('order-history', 'IndexController@orderHistory');
                 Route::get('profile', 'IndexController@profile');
-            });    
-        });        
+                Route::get('all', 'IndexController@getAllRestaurents');
+            });      
+        });
+    });
+
+    Route::group(['prefix' => 'coupons', 'namespace' => 'Coupon'], function()
+    {
+        Route::get('/', 'IndexController@index');
+        Route::post('/store', 'IndexController@store');
+        Route::post('/update', 'IndexController@update');
+        Route::post('/delete', 'IndexController@destroy');
     });
 
     Route::group(['prefix' => 'shopper'], function() {
@@ -166,13 +175,14 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
         });
 
         Route::group(['middleware' => 'auth:api'], function() {
-            Route::get('/getProfile', 'AuthController@getProfile');
+            // Route::get('/getProfile', 'AuthController@getProfile');
             Route::post('change-password', 'AuthController@changePassword');
             Route::post('/update-profile', 'AuthController@UpdateProfile');
             Route::post('saveUserDeviceToken', 'AuthController@saveUserDeviceToken');
             Route::get('sign-out', 'AuthController@signOut');
             Route::group(['namespace' => 'Grocery'], function()
             {
+                Route::get('/getProfile', 'IndexController@Profile');
                 Route::get('order-history', 'IndexController@orderHistory');
             });            
         });
@@ -188,6 +198,10 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
             Route::post('/delete', 'IndexController@destroy');
             Route::post('/search-filter', 'IndexController@searchFilter');
             Route::get('/latest-offers', 'IndexController@latestOffers');
+            Route::get('/getByCategory', 'IndexController@getItemsbyCategory');
+            Route::get('/getByUser', 'IndexController@getItemsbyUser');
+            Route::get('/popular', 'IndexController@popularItems');
+            Route::post('/searchFood', 'IndexController@searchItem');
         });
 
         Route::group(['prefix' => 'contents', 'namespace' => 'Content'], function() {
@@ -202,5 +216,5 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
             Route::get('new-orders', 'IndexController@newOrders');
             Route::get('view-order', 'IndexController@singleOrder');        
         });
-    });        
+    });   
 }); 

@@ -56,8 +56,18 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    protected $appends = ['earnings', 'spent', 'deliveries', 'cancel_orders', 'online_status'];
+    protected $appends = ['earnings', 'spent', 'deliveries', 'cancel_orders', 'active_status'];
 
+
+    public function getActiveStatusAttribute()
+    {        
+        if($this->onlineStatus == 1) {
+            return 'online';
+        } else {
+            return 'offline';
+        }
+    }
+    
     public function getCancelOrdersAttribute()
     {        
         $data = CancelOrder::where('cancel_by', $this->id)->count('cancel_by');
@@ -82,11 +92,6 @@ class User extends Authenticatable
         return $data;
     }
 
-    public function getOnlineStatusAttribute()
-    {        
-        $data = User::where('id', $this->id)->first();
-        return $data;
-    }
     // Customer Section Start Created By MYTECH MAESTRO
 
     public static function verifyOtp($request)
@@ -535,7 +540,14 @@ class User extends Authenticatable
 
     public function item()
     {
-        return $this->hasMany('App\Item',  'restaurent_id');        
+        return $this->hasMany('App\Item', 'grocery_id');        
     }
+
+    public function items()
+    {
+        return $this->hasMany('App\Item', 'restaurent_id');        
+    }
+
+
     // Customer Section End Created By MYTECH MAESTRO
 }

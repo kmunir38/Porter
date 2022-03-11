@@ -365,7 +365,7 @@
                                 </div>
                             </td>
                         </tr>
-                         <tr>
+                        <tr>
                             <td>Item Category</td>
                             <td>
                                 <div class="pretty p-icon p-jelly p-round p-bigger">
@@ -397,6 +397,45 @@
                             <td>
                                 <div class="pretty p-icon p-jelly p-round p-bigger">
                                     {{ Form::checkbox('permission[category-delete]', 'category-delete') }}
+                                    <div class="state p-info">
+                                        <i class="icon material-icons">done</i>
+                                        <label>Delete</label>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Coupon</td>
+                            <td>
+                                <div class="pretty p-icon p-jelly p-round p-bigger">
+                                    {{ Form::checkbox('permission[coupon-list]', 'coupon-list') }}
+                                    <div class="state p-info">
+                                        <i class="icon material-icons">done</i>
+                                        <label>List</label>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="pretty p-icon p-jelly p-round p-bigger">
+                                    {{ Form::checkbox('permission[coupon-create]', 'coupon-create') }}
+                                    <div class="state p-info">
+                                        <i class="icon material-icons">done</i>
+                                        <label>Create</label>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="pretty p-icon p-jelly p-round p-bigger">
+                                    {{ Form::checkbox('permission[coupon-edit]', 'coupon-edit') }}
+                                    <div class="state p-info">
+                                        <i class="icon material-icons">done</i>
+                                        <label>Edit</label>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="pretty p-icon p-jelly p-round p-bigger">
+                                    {{ Form::checkbox('permission[coupon-delete]', 'coupon-delete') }}
                                     <div class="state p-info">
                                         <i class="icon material-icons">done</i>
                                         <label>Delete</label>

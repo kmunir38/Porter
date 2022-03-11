@@ -7,9 +7,9 @@
           <div class="col-12">
             <div class="card">
               <div class="card-header">
-                <h4>Create New Category</h4>
+                <h4>Create New Coupon</h4>
               </div>
-              {!! Form::open(array('route' => 'category.store','method'=>'POST', 'files' => true)) !!}
+              {!! Form::open(array('route' => 'coupon.store','method'=>'POST', 'files' => true)) !!}
                 <div class="card-body">
                 <div class="form-group row mb-4">
                   <label class="col-form-label text-md-right col-12 col-md-3 col-lg-3">Name</label>

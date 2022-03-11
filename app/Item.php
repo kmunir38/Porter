@@ -4,25 +4,33 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
 use DB;
+use Auth;
 class Item extends Model
 {
 	use LogsActivity;
-    protected $fillable = ['name','restaurent_id', 'category_id', 'rider_id', 'shopper_id', 'price', 'ingredients', 'image', 'discount', 'start_date', 'end_date', 'status', 'description'];
+    protected $fillable = ['name','restaurent_id', 'category_id', 'rider_id', 'grocery_id', 'shopper_id', 'price', 'ingredients', 'image', 'discount', 'start_date', 'end_date', 'status', 'description'];
 
-    protected static $logAttributes = ['name','restaurent_id', 'category_id', 'rider_id', 'shopper_id', 'price', 'ingredients', 'image', 'discount', 'start_date', 'end_date', 'status', 'description'];
+    protected static $logAttributes = ['name','restaurent_id', 'category_id', 'rider_id', 'grocery_id', 'shopper_id', 'price', 'ingredients', 'image', 'discount', 'start_date', 'end_date', 'status', 'description'];
     protected static $logName = 'Item';
     protected static $logOnlyDirty = true;
 
-    protected $appends = ['ratings'];
+    protected $appends = ['ratings', 'count_rating'];
 
     public function getRatingsAttribute($value)
     {    
         $ratings = DB::table('ratings')->select('item_id', DB::raw('SUM(rating) as rate'))
-                ->groupBy('item_id')->where('item_id', $this->id)
+                ->groupBy('item_id')->orderBy('rating')->where('item_id', $this->id)
                 ->avg('rating');        
         return $ratings;
     }
 
+    public function getCountRatingAttribute($value)
+    {    
+        $ratings = DB::table('ratings')->select('item_id', DB::raw('SUM(rating) as rate'))
+                ->groupBy('item_id')->orderBy('rating')->where('item_id', $this->id)
+                ->avg('rating');        
+        return $ratings;
+    }
         public function scopeIsWithinMaxDistance($query, $coordinates, $radius) {
 
         $haversine = "(6371 * acos(cos(radians(" . $coordinates['latitude'] . ")) 
@@ -71,6 +79,17 @@ class Item extends Model
             $item = $item->isWithinMaxDistance(['latitude' => $request->latitude, 'longitude' => $request->longitude], $distance);
         }
         return $item->get(); 
+    }
+
+    public function getPopularItems()
+    {
+        $items = Item::get()->sortByDesc('ratings');
+        return $items;
+    }
+
+        public function grocery()
+    {
+        return $this->belongsTo('App\User', 'grocery_id');
     }
 
     public function restaurent()

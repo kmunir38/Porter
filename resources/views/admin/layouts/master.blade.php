@@ -220,6 +220,20 @@
               </li>
             @endif
 
+            @if(Gate::check('coupon-list') || Gate::check('coupon-create'))
+              <li class="dropdown {{ Request::is('admin/coupons', 'admin/coupons/create') ? 'active' : '' }}">
+                <a href="javascript:void(0);" class="menu-toggle nav-link has-dropdown"><i data-feather="shopping-bag"></i><span>Coupons</span></a>
+                <ul class="dropdown-menu">
+                  @can('coupon-list')
+                    <li class="{{ Request::is('admin/coupons') ? 'active' : '' }}"><a class="nav-link" href="{{ route('coupon.index') }}">All Coupons</a></li>
+                  @endcan
+                  @can('coupon-create')
+                    <li class="{{ Request::is('admin/coupons/create') ? 'active' : '' }}"><a class="nav-link" href="{{ route('coupon.create') }}">Add Coupon</a></li>
+                  @endcan
+                </ul>
+              </li>
+            @endif          
+
             @if(Gate::check('setting-list') || Gate::check('setting-list'))
             <li class="dropdown {{ Request::is('admin/settings', 'admin/contents', 'admin/logs') ? 'active' : '' }}">
               <a href="#" class="menu-toggle nav-link has-dropdown"><i data-feather="settings"></i><span>General Settings</span></a>

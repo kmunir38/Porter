@@ -9,6 +9,9 @@ use App\Http\Resources\Frontend\Item\SingleItem as ViewItem;
 use App\Http\Resources\Frontend\Item\Listing as ListItems;
 use App\Http\Resources\Frontend\Item\Offers as ViewOffers;
 use App\Http\Resources\Frontend\Item\Filter as FilterItems;
+use App\Http\Resources\Frontend\Item\Top as MostPopular;
+use App\Http\Resources\Frontend\Item\SearchFood as FindFood;
+use App\Http\Resources\Frontend\Item\Details as GetByCategory;
 use Illuminate\Support\Facades\Validator;
 use App\Item;
 use DB;
@@ -197,7 +200,68 @@ class IndexController extends Controller
                 'message' => 'No Record Found',
                 'data' => []
             ]);        
+        }
     }
+
+    public function getItemsbyCategory(Request $request)
+    {
+       $item = Item::where('category_id', $request->catID)->get();
+       $result = GetByCategory::collection($item)->toArray($request);
+        if ($item) {
+            return $this->apiSuccessMessageResponse('success', $result);
+        } else {
+            return response()->json([
+                'status' => 0,
+                'message' => 'No Record Found',
+                'data' => []
+            ]);
+        }
+    }
+
+    public function getItemsbyUser(Request $request)
+    {
+        $item = Item::where('grocery_id', $request->userID)->get();
+        if ($item) {
+            return $this->apiSuccessMessageResponse('success', $item);
+        } else {
+            return response()->json([
+                'status' => 0,
+                'message' => 'No Record Found',
+                'data' => []
+            ]);
+        }
+    }
+
+    public function popularItems(Request $request)
+    {
+       $items = new Item(); 
+       $items = $items->getPopularItems($request);
+       $result = MostPopular::collection($items)->toArray($request);
+        if ($items) {
+            return $this->apiSuccessMessageResponse('success', $result);
+        } else {
+            return response()->json([
+                'status' => 0,
+                'message' => 'No Record Found',
+                'data' => []
+            ]);
+        }
+    }
+
+    public function searchItem(Request $request)
+    {
+       $item = $request->search; 
+       $records = Item::where('name', 'LIKE' ,'%'. $item .'%')->get();
+       $result = FindFood::collection($items)->toArray($request);
+        if ($records) {
+            return $this->apiSuccessMessageResponse('success', $records);
+        } else {
+            return response()->json([
+                'status' => 0,
+                'message' => 'No Record Found',
+                'data' => []
+            ]);
+        }
     }
 }
 
