@@ -8,9 +8,9 @@ use Auth;
 class Item extends Model
 {
 	use LogsActivity;
-    protected $fillable = ['name','restaurent_id', 'category_id', 'rider_id', 'grocery_id', 'shopper_id', 'price', 'ingredients', 'image', 'discount', 'start_date', 'end_date', 'status', 'description'];
+    protected $fillable = ['name','restaurant_id', 'category_id', 'rider_id', 'grocery_id', 'shopper_id', 'price', 'ingredients', 'image', 'discount', 'start_date', 'end_date', 'status', 'description'];
 
-    protected static $logAttributes = ['name','restaurent_id', 'category_id', 'rider_id', 'grocery_id', 'shopper_id', 'price', 'ingredients', 'image', 'discount', 'start_date', 'end_date', 'status', 'description'];
+    protected static $logAttributes = ['name','restaurant_id', 'category_id', 'rider_id', 'grocery_id', 'shopper_id', 'price', 'ingredients', 'image', 'discount', 'start_date', 'end_date', 'status', 'description'];
     protected static $logName = 'Item';
     protected static $logOnlyDirty = true;
 
@@ -31,18 +31,20 @@ class Item extends Model
                 ->avg('rating');        
         return $ratings;
     }
-        public function scopeIsWithinMaxDistance($query, $coordinates, $radius) {
+       
+    public function scopeIsWithinMaxDistance($query, $coordinates, $radius) 
+    {
 
-        $haversine = "(6371 * acos(cos(radians(" . $coordinates['latitude'] . ")) 
-                        * cos(radians(`latitude`)) 
-                        * cos(radians(`longitude`) 
-                        - radians(" . $coordinates['longitude'] . ")) 
-                        + sin(radians(" . $coordinates['latitude'] . ")) 
-                        * sin(radians(`latitude`))))";
+    $haversine = "(6371 * acos(cos(radians(" . $coordinates['latitude'] . ")) 
+                    * cos(radians(`latitude`)) 
+                    * cos(radians(`longitude`) 
+                    - radians(" . $coordinates['longitude'] . ")) 
+                    + sin(radians(" . $coordinates['latitude'] . ")) 
+                    * sin(radians(`latitude`))))";
 
-        return $query->select('*')
-                     ->selectRaw("{$haversine} AS distance")
-                     ->whereRaw("{$haversine} < ?", [$radius]);
+            return $query->select('*')
+                 ->selectRaw("{$haversine} AS distance")
+                 ->whereRaw("{$haversine} < ?", [$radius]);
     }
 
     public function ListingItems($request)
@@ -92,9 +94,9 @@ class Item extends Model
         return $this->belongsTo('App\User', 'grocery_id');
     }
 
-    public function restaurent()
+    public function restaurant()
     {
-    	return $this->belongsTo('App\User', 'restaurent_id');
+    	return $this->belongsTo('App\User', 'restaurant_id');
     }
 
     public function shopper()

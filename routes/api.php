@@ -202,11 +202,10 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
             Route::get('/getByUser', 'IndexController@getItemsbyUser');
             Route::get('/popular', 'IndexController@popularItems');
             Route::post('/searchFood', 'IndexController@searchItem');
-        });
-
-        Route::group(['prefix' => 'contents', 'namespace' => 'Content'], function() {
-            Route::get('/', 'IndexController@index');        
-        });  
+            Route::get('/getAllCategories', 'IndexController@getAllCategories');
+            Route::get('/getRecentItems', 'IndexController@getRecentItems');
+            Route::get('/getAllDiscounted', 'IndexController@getAllDiscounted');
+        });        
 
         Route::group(['prefix' => 'orders', 'namespace' => 'Order'], function() {
             Route::post('place', 'IndexController@store');
@@ -214,7 +213,14 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
             Route::post('reject', 'IndexController@rejectOrder');
             Route::get('past-orders', 'IndexController@pastOrders');
             Route::get('new-orders', 'IndexController@newOrders');
+            Route::get('getitems', 'IndexController@getAllOrderItems');
             Route::get('view-order', 'IndexController@singleOrder');        
         });
+        Route::group(['namespace' => 'Notification', 'prefix' => 'notification'], function() {
+            Route::get('/', 'IndexController@index');           
+        });
+    });  
+    Route::group(['prefix' => 'contents', 'namespace' => 'Content'], function() {
+            Route::get('/', 'IndexController@index');        
     });   
 }); 

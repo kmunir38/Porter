@@ -13,7 +13,7 @@ class IndexController extends Controller
     use ApiResponse;
 	public function index(Request $request)
 	{
-		$coupons = Coupon::where('restaurent_id', $request->id)->get();
+		$coupons = Coupon::where('restaurant_id', $request->id)->get();
     	if (count($coupons) > 0) {
     		return $this->apiSuccessMessageResponse('success', $coupons);
         } else {
@@ -30,7 +30,7 @@ class IndexController extends Controller
         $validator = Validator::make($request->all(), [
             'title'           => 'required',
             'voucher_code'    => 'required',
-            'restaurent_id'   => 'required|exists:users,id',
+            'restaurant_id'   => 'required|exists:users,id',
             'discount'        => 'required',     
             'min_amount'      => 'required',     
             'exp_date'        => 'required'     
@@ -43,7 +43,7 @@ class IndexController extends Controller
         $coupons->title             = $request->title;
         $coupons->voucher_code      = $request->voucher_code;
         $coupons->discount          = $request->discount;
-        $coupons->restaurent_id     = $request->restaurent_id; 
+        $coupons->restaurant_id     = $request->restaurant_id; 
         $coupons->min_amount        = $request->min_amount;
         $coupons->exp_date          = $request->exp_date;    
         $coupons->save();
@@ -58,7 +58,7 @@ class IndexController extends Controller
         $validator = Validator::make($request->all(), [
             'title'           => 'required',
             'voucher_code'    => 'required',
-            'restaurent_id'   => 'required|exists:users,id',
+            'restaurant_id'   => 'required|exists:users,id',
             'discount'        => 'required',     
             'min_amount'      => 'required',     
             'exp_date'        => 'required'     
@@ -72,7 +72,7 @@ class IndexController extends Controller
         $coupon->title           = $request->title;
         $coupon->voucher_code    = $request->voucher_code;
         $coupon->discount        = $request->discount;
-        $coupon->restaurent_id   = $request->restaurent_id; 
+        $coupon->restaurant_id   = $request->restaurant_id; 
         $coupon->min_amount      = $request->min_amount;
         $coupon->exp_date        = $request->exp_date;    
         $coupon->save();

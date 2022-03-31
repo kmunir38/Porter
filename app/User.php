@@ -14,6 +14,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 use App\Http\Resources\Frontend\Customer\GetProfile as GetUserProfile;
 use App\Http\Resources\Frontend\Rider\GetProfile as GetRiderProfile;
 use DB;
+use App\Rating;
 
 class User extends Authenticatable
 {
@@ -30,11 +31,11 @@ class User extends Authenticatable
      *
      * @var array
      */
-    protected $fillable = ['added_by', 'updated_by', 'name', 'email', 'phone', 'address', 'image', 'password', 'otp', 'device_type', 'latitude', 'longitude',
-         'age', 'dob', 'device_token', 'identity', 'id_image', 'description', 'verified_by', 'social_provider', 'social_token', 'social_id', 'onlineStatus'];
+    protected $fillable = ['added_by', 'updated_by', 'name', 'email', 'phone', 'address', 'image', 'password', 'otp', 'device_type', 'latitude', 'longitude', 'br_code',
+         'age', 'dob', 'country_code', 'country_flag', 'device_token', 'identity', 'id_image', 'description', 'verified_by', 'social_provider', 'social_token', 'social_id', 'onlineStatus', 'user_type'];
 
-    protected static $logAttributes = ['added_by', 'updated_by', 'name', 'email', 'phone', 'address', 'image', 'password', 'otp', 'device_type', 'latitude', 'longitude',
-         'age', 'dob', 'device_token', 'identity', 'id_image', 'description', 'verified_by', 'social_provider', 'social_token', 'social_id', 'onlineStatus'];
+    protected static $logAttributes = ['added_by', 'updated_by', 'name', 'email', 'phone', 'address', 'image', 'password', 'otp', 'device_type', 'latitude', 'longitude', 'br_code',
+         'age', 'dob', 'country_code', 'country_flag', 'device_token', 'identity', 'id_image', 'description', 'verified_by', 'social_provider', 'social_token', 'social_id', 'onlineStatus', 'user_type'];
     protected static $logName = 'User';
     protected static $logOnlyDirty = true;
 
@@ -56,8 +57,19 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    protected $appends = ['earnings', 'spent', 'deliveries', 'cancel_orders', 'active_status'];
+    protected $appends = ['ratings', 'count_ratings', 'earnings', 'spent', 'deliveries', 'cancel_orders', 'active_status'];
 
+    public function getRatingsAttribute()
+    {        
+        $rate = Rating::where('user_id', $this->id)->avg('rating');
+        return $rate ?? 0;
+    }
+
+    public function getCountRatingsAttribute()
+    {        
+        $rate = Rating::where('user_id', $this->id)->count('rating');
+        return $rate ?? 0;
+    }
 
     public function getActiveStatusAttribute()
     {        
@@ -82,7 +94,7 @@ class User extends Authenticatable
 
     public function getEarningsAttribute()
     {        
-        $data = Order::where('order_status', 'completed')->where('restaurent_id', $this->id)->sum('grand_total');
+        $data = Order::where('order_status', 'completed')->where('restaurant_id', $this->id)->sum('grand_total');
         return $data;
     }
 
@@ -149,7 +161,7 @@ class User extends Authenticatable
                         $user->save();
                     }
 
-                    $user->token = 'Bearer ' . $tokenResult->accessToken;
+                    $user->token = 'Bearer' . $tokenResult->accessToken;
                     // $user->roles = $user->roles ?? [];
                     
                     return $user;
@@ -167,6 +179,13 @@ class User extends Authenticatable
 
     public function resendOtp($request)
     {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,id'
+        ]);
+
+        if ($validator->fails()) {
+            return $validator;
+        }
         $record = $this::whereNotNull('otp');
         
         $record = $this::query();
@@ -279,6 +298,7 @@ class User extends Authenticatable
         $validationRules['password'] = 'required|string|min:6|max:16|confirmed';
         $validationRules['verified_by'] = 'required|in:email';
         $validationRules['email'] = 'required|string|email|min:5|max:155|unique:users';
+        $validationRules['role'] = 'exists:roles,id';
 
         $validator = Validator::make($request->all(), $validationRules);
 
@@ -297,9 +317,15 @@ class User extends Authenticatable
             'email' => $request->email,
             'phone' => $request->phone,
             'password' => bcrypt($request->password),
+            'country_code' => $request->country_code,
+            'address' => $request->address,
             'verified_by' => $type,
+            'br_code' => $request->br_code,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'image' => 'public/uploads/users/img/user-avatar.png',
             'otp' => $token,
-            $this->assignRole(2)
+            $this->assignRole($request->role)
         ];
 
         $this->fill($data);
@@ -448,6 +474,7 @@ class User extends Authenticatable
 
     public function updateProfile($request, $id)
     {   
+
         $checkUser = $this::where('id', $id)->first();
 
         $currentName = $checkUser->name;
@@ -469,7 +496,18 @@ class User extends Authenticatable
         $currentlat      = $checkUser->latitude;
         $currentlon      = $checkUser->longitude;
         $currentImage    = $checkUser->image;
+        $currentCountryCode    = $checkUser->country_code;
 
+        if($request->image){
+        $image = $request->image;
+        $image_name = rand().'.'. $image->getClientOriginalExtension();
+        $image->move(public_path('upload/users/img/'), $image_name);
+        }
+        if($request->id_image){
+        $idImg = $request->id_image;
+        $id_image = rand().'.'. $idImg->getClientOriginalExtension();
+        $idImg->move(public_path('upload/users/img/'), $id_image);
+        }
         $record = $this::find($id);
         $record->name = $request->name ? $request->name : $currentName;
         $record->email = $request->email ? $request->email : $currentEmail;
@@ -485,11 +523,21 @@ class User extends Authenticatable
         $record->dob = $request->dob ? $request->dob : $currentDOB;
         $record->age = $request->age ? $request->age : $currentAge;
         $record->identity = $request->identity ? $request->identity : $currentIdentity;
-        $record->id_image = $request->id_image ? $request->id_image : $currentIDimage;
+        if($request->id_image)
+        {
+        $record->id_image = 'public/uploads/users/img/'.$id_image;           
+        } else {
+            $record->id_image = $currentIDimage;
+        }
+        if($request->image){
+        $record->image = 'public/uploads/users/img/'.$image_name ;
+        } else {
+            $record->image = $currentImage;
+        }
         $record->description = $request->description ? $request->description : $currentDesc;
         $record->latitude = $request->latitude ? $request->latitude : $currentlat;
         $record->longitude = $request->longitude ? $request->longitude : $currentlon;
-        $record->image = $request->image ? $request->image : $currentImage;
+        $record->country_code = $request->country_code ? $request->country_code : $currentCountryCode;
         $record->save();
 
         return $record;
@@ -537,6 +585,226 @@ class User extends Authenticatable
 
         return $user;
     }
+    
+    public function userGoogleAuth($request)
+    {
+        $validationRules['name'] = 'required|string|min:3|max:55';
+        $validationRules['email'] = 'required|string|email|min:5|max:155';
+        $validationRules['social_token'] = 'required|string';
+
+        $validator = Validator::make($request->all(), $validationRules);
+
+        if ($validator->fails()) {
+            return $validator;
+        }
+
+        $record = $this::where('social_token', $request->social_token)
+        ->first();
+
+        if (!$record) 
+        {
+            $record = $this;
+
+            $record->name = $request->name;
+            $record->email = $request->email;
+            $record->verified_by = 'google';
+            $record->social_id = $request->social_token;
+            $record->password = bcrypt('googlePassword');
+            $record->social_provider = 'google';
+            $record->image = 'public/uploads/users/img/user-avatar.png';
+            $record->social_token = $request->social_token;
+            $record->email_verified_at = date('Y-m-d H:i:s');   
+            $record->assignRole($request->role);
+            $record->save();
+        } else {
+            
+            $record->save();
+        }
+
+        if (!Auth::guard('frontend')->loginUsingId($record->id)) 
+        {
+            return 'Something wen\'t wrong';
+        }
+
+        if (Auth::guard('frontend')->user()) 
+        {
+            $user = Auth::guard('frontend')->user();
+        }
+
+        $tokenResult = $user->createToken('Personal Access Token');
+
+        $token = $tokenResult->token;
+
+        if ($request->remember_me) 
+        {
+            $token->expires_at = Carbon::now()->addWeeks(1);
+        }
+
+        $token->save();
+
+        $device_type = $request->has('device_type') ? $request->device_type : '';
+        $device_token = $request->has('device_token') ? $request->device_token : '';
+
+        if ($device_token && $device_type) 
+        {
+            $user->device_type = $device_type;
+            $user->device_token = $device_token;
+
+            $user->save();
+        }
+
+        $user->token = 'Bearer ' . $tokenResult->accessToken;
+        // $user->roles = $user->roles ?? [];
+
+        return $user;
+    }
+
+    public function userFacebookAuth($request)
+    {
+        $validationRules['name'] = 'required|string|min:3|max:55';
+        $validationRules['email'] = 'required|string|email|min:5|max:155';
+        $validationRules['social_token'] = 'required|string';
+
+        $validator = Validator::make($request->all(), $validationRules);
+
+        if ($validator->fails()) {
+            return $validator;
+        }
+
+        $record = $this::where('social_token', $request->social_token)
+        ->first();
+
+        if (!$record) 
+        {
+            $record = $this;
+            
+            $record->name = $request->name;
+            $record->email = $request->email;
+            $record->verified_by  = 'facebook';
+            $record->social_id = $request->social_token;
+            $record->password = bcrypt('facebookPassword');
+            $record->social_provider = 'facebook';
+            $record->social_token = $request->social_token;
+            $record->image = 'public/uploads/users/img/user-avatar.png';
+            $record->email_verified_at = date('Y-m-d H:i:s');
+            // $record->isFirstTime = 1;
+            $record->assignRole($request->role);
+            $record->save();
+        } else {
+            // $record->isFirstTime = 0;
+            $record->save();
+        }
+
+        if (!Auth::guard('frontend')->loginUsingId($record->id)) 
+        {
+            return 'Something wen\'t wrong';
+        }
+
+        if (Auth::guard('frontend')->user()) 
+        {
+            $user = Auth::guard('frontend')->user();
+        }
+
+        $tokenResult = $user->createToken('Personal Access Token');
+
+        $token = $tokenResult->token;
+
+        if ($request->remember_me)
+        {
+            $token->expires_at = Carbon::now()->addWeeks(1);
+        }
+
+        $token->save();
+
+        $device_type = $request->has('device_type') ? $request->device_type : '';
+        $device_token = $request->has('device_token') ? $request->device_token : '';
+
+        if ($device_token && $device_type) 
+        {
+            $user->device_type   = $device_type;
+            $user->device_token  = $device_token;
+
+            $user->save();
+        }
+
+        $user->token = 'Bearer ' . $tokenResult->accessToken;
+        // $user->roles = $user->roles ?? [];
+        
+        return $user;
+    }
+
+    public function userAppleAuth($request)
+    {
+        $validationRules['name'] = 'required|string|min:3|max:55';
+        $validationRules['email'] = 'required|string|email|min:5|max:155';
+        $validationRules['social_token'] = 'required|string';
+
+        $validator = Validator::make($request->all(), $validationRules);
+
+        if ($validator->fails()) {
+            return $validator;
+        }
+
+        $record = $this::where('social_token', $request->social_token)
+        ->first();
+
+        if (!$record) 
+        {
+            $record = $this;
+
+            $record->name = $request->name;
+            $record->email = $request->email;
+            $record->verified_by = 'apple';
+            $record->social_id = $request->social_token;
+            $record->password = bcrypt('applePassword');
+            $record->social_provider = 'apple';
+            $record->social_token = $request->social_token;
+            $record->email_verified_at = date('Y-m-d H:i:s');
+            $record->isFirstTime = 1;
+            $record->assignRole(2);
+            $record->save();
+        } else {
+            $record->isFirstTime = 0;
+            $record->save();
+        }
+
+        if (!Auth::guard('frontend')->loginUsingId($record->id)) 
+        {
+            return 'Something wen\'t wrong';
+        }
+
+        if (Auth::guard('frontend')->user()) 
+        {
+            $user = Auth::guard('frontend')->user();
+        }
+
+        $tokenResult = $user->createToken('Personal Access Token');
+
+        $token = $tokenResult->token;
+
+        if ($request->remember_me) 
+        {
+            $token->expires_at = Carbon::now()->addWeeks(1);
+        }
+
+        $token->save();
+
+        $device_type = $request->has('device_type') ? $request->device_type : '';
+        $device_token = $request->has('device_token') ? $request->device_token : '';
+
+        if ($device_token && $device_type) 
+        {
+            $user->device_type = $device_type;
+            $user->device_token = $device_token;
+
+            $user->save();
+        }
+
+        $user->token = 'Bearer ' . $tokenResult->accessToken;
+        // $user->roles = $user->roles ?? [];
+        
+        return $user;
+    }
 
     public function item()
     {
@@ -545,9 +813,13 @@ class User extends Authenticatable
 
     public function items()
     {
-        return $this->hasMany('App\Item', 'restaurent_id');        
+        return $this->hasMany('App\Item', 'restaurant_id');        
     }
 
+    public function userRating()
+    {
+        return $this->hasMany('App\Rating', 'user_id');
+    }
 
     // Customer Section End Created By MYTECH MAESTRO
 }

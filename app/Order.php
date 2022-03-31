@@ -5,20 +5,27 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
 use DB;
+use App\OrderItem;
 
 class Order extends Model
 {
 	use LogsActivity;
-    protected $fillable = ['user_id', 'restaurent_id', 'rider_id', 'shopper_id', 'sub_total', 'vat', 'grand_total', 'order_status', 'payment_method', 'payment_staus'];
+    protected $fillable = ['user_id', 'restaurant_id', 'rider_id', 'shopper_id', 'sub_total', 'vat', 'grand_total', 'order_status', 'payment_method', 'payment_staus'];
 
-    protected static $logAttributes = ['user_id', 'restaurent_id', 'rider_id', 'shopper_id', 'sub_total', 'vat', 'grand_total', 'order_status', 'payment_method', 'payment_staus'];
+    protected static $logAttributes = ['user_id', 'restaurant_id', 'rider_id', 'shopper_id', 'sub_total', 'vat', 'grand_total', 'order_status', 'payment_method', 'payment_staus'];
     protected static $logName = 'Order';
     protected static $logOnlyDirty = true;
+
+    public function ItemsOrder()
+    {
+        return $this->hasMany('App\OrderItem');
+    }
 
     public function OrderItem()
     {
         return $this->hasMany('App\OrderItem', 'id', 'order_id');
     }
+
     public function order_items()
     {
         return $this->belongsToMany(Order::class, 'order_items','order_id', 'item_id');
@@ -31,7 +38,7 @@ class Order extends Model
 
     public function item()
     {
-    	return $this->belongsTo('App\Item', 'restaurent_id');
+    	return $this->belongsTo('App\Item', 'restaurant_id');
     }
 
     public function user()
@@ -39,9 +46,9 @@ class Order extends Model
         return $this->belongsTo('App\User', 'user_id');
     }
 
-    public function restaurent()
+    public function restaurant()
     {
-        return $this->belongsTo('App\User', 'restaurent_id');
+        return $this->belongsTo('App\User', 'restaurant_id');
     }
 
     public function shopper()

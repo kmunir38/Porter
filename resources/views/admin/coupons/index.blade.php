@@ -17,7 +17,7 @@
                       <tr>
                         <th>No</th>
                         <th>Name</th>
-                        <th>Restaurent / Grocery</th>
+                        <th>Restaurant / Grocery</th>
                         <th>Voucher Code</th>
                         <th>Discount</th>
                         <th>Min. Amount</th>
@@ -31,15 +31,15 @@
                       <tr>
                         <td>{{ $key + 1 }}</td>
                         <td>{{ $value->title }}</td>
-                        @if($value->restaurent_id !== NULL)
-                        <td>{{ $value->restaurent->name }}</td>@else
+                        @if($value->restaurant_id !== NULL)
+                        <td>{{ $value->restaurant->name }}</td>@else
                         <td>{{ $value->grocery->name }}</td>
                         @endif
                         <td>{{ $value->voucher_code }}</td>
                         <td>{{ $value->discount }}</td>
                         <td>{{ $value->min_amount }}</td>
                         <td>{{ $value->exp_date }}</td>
-                        <td>@if($value->exp_date > now()) Expired @else Active @endif</td>                        
+                        <td>@if($value->exp_date < now()) Expired @else Active @endif</td>                        
                         <td>
                             @can('coupon-edit')
                                <a class="btn btn-primary" href="{{ route('coupon.edit',$value->id) }}">Edit</a>

@@ -14,7 +14,7 @@ class IndexController extends Controller
 {
    public function index()
    {
-   		$users = User::role('restaurent')->latest()->get();
+   		$users = User::role('restaurant')->latest()->get();
    		return view('admin.restaurants.index', compact('users'));
    }
        /**
@@ -48,7 +48,7 @@ class IndexController extends Controller
         $user->phone 			= $request->phone;
         $user['password'] 		= Hash::make($user['password']);
         $user['added_by'] 		= Auth::user()->id;
-        $user->assignRole('restaurent');
+        $user->assignRole('restaurant');
     	$user->save();
 
         Toastr::success('Restaurant created successfully.', 'Success');

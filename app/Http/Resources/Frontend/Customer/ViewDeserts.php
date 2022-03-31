@@ -10,8 +10,8 @@ class ViewDeserts extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'image' => $this->image,
-            'Restaurent' => $this->restaurent->name,
-            'restaurent rating' => $this->restaurent->ratings
+            'Restaurent' => $this->restaurant->name,
+            'restaurent rating' => $this->restaurant->ratings
         ];
     }
 }

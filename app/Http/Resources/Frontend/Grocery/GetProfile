@@ -7,11 +7,16 @@ class GetProfile extends JsonResource
     public function toArray($request)
     {   
         return [
-            'id' => $this->id,
+             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
-            'earning' => $this->earnings
+            'image' => $this->image,
+            'address'   => $this->address,
+            'latitude' => $this->latitude,
+            'longitude' => $this->longitude,
+            'country_code' => $this->country_code,
+            'ratings' => $this->ratings
         ];
     }
 }

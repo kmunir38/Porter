@@ -16,7 +16,7 @@ class IndexController extends Controller
 
     public function orderHistory()
     {
-    	$data['records'] = Order::where('restaurent_id', Auth::user()->id)->get();
+    	$data['records'] = Order::where('restaurant_id', Auth::user()->id)->get();
 
     	if (count($data['records']) > 0) {
         return $this->apiSuccessMessageResponse('success', $data);

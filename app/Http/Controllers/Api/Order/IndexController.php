@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Permission\Models\Role;
 use App\Http\Resources\Frontend\Order\PastOrder as ViewPastOrder;
+use App\Http\Resources\Frontend\Order\ViewOrder as ViewOrderDetail;
+use App\Http\Resources\Frontend\Order\GetItems as GetOrderItems;
 use App\Order;
 use App\OrderItem;
 use App\CancelOrder;
@@ -24,7 +26,7 @@ class IndexController extends Controller
 	public function store(Request $request)
     { 
         $validator = Validator::make($request->all(), [
-            'restaurent_id'     => 'required|exists:users,id',
+            'restaurant_id'     => 'required|exists:users,id',
             'item_id'     		=> 'required|exists:items,id',
             'qty'        		=> 'required|numeric',    
         ]);
@@ -35,7 +37,7 @@ class IndexController extends Controller
         $vat = Setting::where('name', 'vat')->first();	
         $order = new Order();
         $order->user_id = \Auth::user()->id;
-        $order->restaurent_id = $request->restaurent_id;
+        $order->restaurant_id = $request->restaurant_id;
         $order->payment_status = 'pending';
         $order->order_status = 'pending';
     	// $order->sub_total = 00;
@@ -70,7 +72,7 @@ class IndexController extends Controller
     public function acceptOrder(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'restaurent_id'   => 'exists:users,id|nullable',
+            'restaurant_id'   => 'exists:users,id|nullable',
             'shopper_id'      => 'exists:users,id|nullable',
             'rider_id'        => 'exists:users,id|nullable',     
             'grocery_id'      => 'exists:users,id|nullable'     
@@ -82,7 +84,7 @@ class IndexController extends Controller
 
         $id = $request->order_id;
         $data                   = Order::find($id);
-        $data->restaurent_id    = $request->restaurent_id;
+        $data->restaurant_id    = $request->restaurant_id;
         $data->shopper_id       = $request->shopper_id;
         $data->rider_id         = $request->rider_id;
         $data->grocery_id       = $request->grocery_id;
@@ -115,7 +117,12 @@ class IndexController extends Controller
 
     public function pastOrders(Request $request)
     {
-        $data = Order::where('restaurent_id',  Auth::user()->id)->where('order_status', 'completed')->get();
+        if($request->resID){
+        $data = Order::where('restaurant_id',  $request->resID)->where('order_status', 'completed')->get();
+        }
+        if($request->riderID){
+        $data = Order::where('rider_id',  $request->riderID)->where('order_status', 'completed')->get();
+        }
         $result = ViewPastOrder::collection($data)->toArray($request);    
 
          if (count($data) > 0) {
@@ -131,7 +138,7 @@ class IndexController extends Controller
 
     public function newOrders(Request $request)
     {
-        $items = Order::where('restaurent_id', Auth::user()->id)->where('order_status', 'pending')->get();
+        $items = Order::where('restaurant_id', Auth::user()->id)->where('order_status', 'pending')->get();
         $result = ViewPastOrder::collection($items)->toArray($request);    
 
         if (count($items) > 0) {
@@ -149,9 +156,9 @@ class IndexController extends Controller
     public function singleOrder(Request $request)
     {
         $data = Order::where('id', $request->id)->first();
-         
+        $result = (new ViewOrderDetail($data))->resolve();
          if ($data) {
-        return $this->apiSuccessMessageResponse('success', $data);
+        return $this->apiSuccessMessageResponse('success', $result);
         } else {
             return response()->json([
             'status' => 0,
@@ -159,5 +166,12 @@ class IndexController extends Controller
             'data' => []
         ]);
         }
+    }
+
+    public function getALLOrderITems(Request $request)
+    {
+        $order = OrderItem::get();
+        $result = GetOrderItems::collection($order)->toArray($request);
+        return $result;
     }
 }

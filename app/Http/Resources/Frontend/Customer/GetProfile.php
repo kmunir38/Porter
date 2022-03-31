@@ -11,6 +11,11 @@ class GetProfile extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
+            'address' => $this->address,
+            'latitude' => $this->latitude,
+            'longitude' => $this->longitude,
+            'country_code' => $this->country_code,
+            'image' => $this->image,
             'earning' => $this->earnings
         ];
     }

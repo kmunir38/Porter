@@ -9,6 +9,8 @@
   <!-- General CSS Files index -->
   <link rel="stylesheet" href="{{ asset('assets/admin/css/app.min.css') }}">
   <!-- General CSS Files create-post -->
+  <link rel="stylesheet" href="{{ asset('assets/admin/bundles/bootstrap-daterangepicker/daterangepicker.css') }}">
+
   <link rel="stylesheet" href="{{ asset('assets/admin/bundles/summernote/summernote-bs4.css') }}">
   <link rel="stylesheet" href="{{ asset('assets/admin/bundles/jquery-selectric/selectric.css') }}">
   <link rel="stylesheet" href="{{ asset('assets/admin/bundles/bootstrap-tagsinput/dist/bootstrap-tagsinput.css') }}">
@@ -278,6 +280,8 @@
   <script src="{{ asset('assets/admin/bundles/jquery-selectric/jquery.selectric.min.js') }}"></script>
   <script src="{{ asset('assets/admin/bundles/upload-preview/assets/js/jquery.uploadPreview.min.js') }}"></script>
   <script src="{{ asset('assets/admin/bundles/bootstrap-tagsinput/dist/bootstrap-tagsinput.min.js') }}"></script>
+  <!-- dategrange picker -->
+  <script src="{{ asset('assets/admin/bundles/bootstrap-daterangepicker/daterangepicker.js')}}"></script>
   <!-- JS Libraies datatables -->
   <script src="{{ asset('assets/admin/bundles/datatables/datatables.min.js') }}"></script>
   <script src="{{ asset('assets/admin/bundles/datatables/DataTables-1.10.16/js/dataTables.bootstrap4.min.js') }}"></script>

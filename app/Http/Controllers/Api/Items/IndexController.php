@@ -12,8 +12,10 @@ use App\Http\Resources\Frontend\Item\Filter as FilterItems;
 use App\Http\Resources\Frontend\Item\Top as MostPopular;
 use App\Http\Resources\Frontend\Item\SearchFood as FindFood;
 use App\Http\Resources\Frontend\Item\Details as GetByCategory;
+use App\Http\Resources\Frontend\Item\RecentItems as RecentItems;
 use Illuminate\Support\Facades\Validator;
 use App\Item;
+use App\ItemCategory;
 use DB;
 use Str;
 
@@ -42,7 +44,7 @@ class IndexController extends Controller
         $validator = Validator::make($request->all(), [
             'name'              => 'required',
             'price'             => 'required|numeric',
-            'restaurent_id'     => 'required|exists:users,id',
+            'restaurant_id'     => 'required|exists:users,id',
             'start_date'        => 'required|date'     
         ]);
 
@@ -53,7 +55,7 @@ class IndexController extends Controller
         $item->name             = $request->name;
         $item->price            = $request->price;
         $item->ingredients      = $request->ingredients;
-        $item->restaurent_id    = $request->restaurent_id; 
+        $item->restaurant_id    = $request->restaurant_id; 
         $item->category_id      = $request->category_id;        
                 
         if ($request->image) {
@@ -189,10 +191,10 @@ class IndexController extends Controller
 
     public function latestOffers(Request $request)
     {
-        $data['records'] = Item::where('discount', '>', 0 )->get();
+        $records = Item::where('discount', '>', 0 )->get();
         // return $data;
-        $result = ViewOffers::collection($data['records'])->toArray($request);
-        if(count($data['records']) > 0){
+        $result = ViewOffers::collection($records)->toArray($request);
+        if(count($records) > 0){
         return $this->apiSuccessMessageResponse('success', $result);
     } else {
         return response()->json([
@@ -261,6 +263,49 @@ class IndexController extends Controller
                 'message' => 'No Record Found',
                 'data' => []
             ]);
+        }
+    }
+
+    public function getAllCategories()
+    {
+        $data = ItemCategory::select('id', 'name')->get();
+        if(count($data) > 0){
+        return $this->apiSuccessMessageResponse('success', $data);
+        } else {
+            return response()->json([
+            'status' => 0,
+            'message' => 'No Record Found',
+            'data' => []
+        ]);
+        }
+    }
+
+    public function getRecentItems(Request $request)
+    {
+        $data = Item::limit(5)->latest()->get();
+        $result = RecentItems::collection($data)->toArray($request);
+        if(count($data) > 0){
+        return $this->apiSuccessMessageResponse('success', $result);
+        } else {
+            return response()->json([
+            'status' => 0,
+            'message' => 'No Record Found',
+            'data' => []
+        ]);
+        }
+    }
+
+    public function getAllDiscounted()
+    {
+        $data = Item::where('discount', '!=', NULL)->latest()->get();
+        if(count($data) > 0){
+        return $this->apiSuccessMessageResponse('success', $data);
+        } else {
+            return response()->json([
+            'status' => 0,
+            'message' => 'No Record Found',
+            'data' => []
+        ]);
         }
     }
 }

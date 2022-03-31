@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Api\Restaurent;
+namespace App\Http\Controllers\Api\Restaurant;
 
 use App\Http\Controllers\Controller;
 use App\Http\Traits\ApiResponse;
 use Illuminate\Http\Request;
-use App\Http\Resources\Frontend\Restaurent\GetRestaurent as GetRestaurent;
+use App\Http\Resources\Frontend\Restaurant\GetRestaurant as GetRestaurant;
 use App\Order;
 use App\User;
 use App\Item;
@@ -18,8 +18,8 @@ class IndexController extends Controller
     public function profile(Request $request)
     {
         $data = User::where('id', $request->id)->first();
-        $result = (new GetUser($data))->resolve();
-        if (count($data) !== null) {
+        $result = (new GetRestaurant($data))->resolve();
+        if ($data) {
 
             return $this->apiSuccessMessageResponse('success', $result);
             
@@ -35,7 +35,7 @@ class IndexController extends Controller
 
     public function updateProfile(Request $request)
     {
-        $data = Item::where('restaurent_id', $request->id)->get();
+        $data = Item::where('restaurant_id', $request->id)->get();
 
         if (count($data) == null) {
             
@@ -49,10 +49,10 @@ class IndexController extends Controller
         return $this->apiSuccessMessageResponse('success', $data);
     }
 
-    public function getAllRestaurents(Request $request)
+    public function getAllRestaurants(Request $request)
     {
-        $data = User::role('restaurent')->get();
-        $result = GetRestaurent::collection($data)->toArray($request);
+        $data = User::role('restaurant')->get();
+        $result = GetRestaurant::collection($data)->toArray($request);
         if (count($data) !== null) {
 
             return $this->apiSuccessMessageResponse('success', $result);

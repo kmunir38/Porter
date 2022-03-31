@@ -8,6 +8,7 @@ class OrderItem extends Model
 {
     protected $fillable = ['order_id', 'item_id', 'price', 'sub_total'];
 
+
     public function order()
     {
         return $this->belongsToMany('App\Order', 'order_id');

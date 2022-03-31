@@ -93,7 +93,7 @@ class AuthController extends Controller
 
             $message = "The Otp Code has been sent to your registered email";
             
-            return $this->apiSuccessMessageResponse($message);
+            return $this->apiErrorMessageResponse($message);
         }
 
         if(gettype($user) == 'string') {
@@ -186,9 +186,9 @@ class AuthController extends Controller
     public function UpdateProfile(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'nullable|string|between:3,55',
-            'email' => 'nullable|email',
-            'phone' => 'nullable|numeric|digits_between:9,14',
+            'name'      => 'nullable|string|between:3,55',
+            'email'     => 'nullable|email',
+            'phone'     => 'nullable|numeric|digits_between:9,14',
         ]);
 
         if ($validator->fails()) {
@@ -250,7 +250,7 @@ class AuthController extends Controller
         try
         {
             $record = new User();
-            $record = $record->GoogleAuth($request);
+            $record = $record->userGoogleAuth($request);
 
             if (!$record instanceof User) 
             {
@@ -280,7 +280,7 @@ class AuthController extends Controller
         try
         {
             $record = new User();
-            $record = $record->FacebookAuth($request);
+            $record = $record->userFacebookAuth($request);
 
             if (!$record instanceof User) 
             {

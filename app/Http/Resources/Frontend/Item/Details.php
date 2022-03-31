@@ -9,10 +9,11 @@ class Details extends JsonResource
         return [
             'id'            => $this->id,
             'name'          => $this->name,
-            'restaurent_id' => $this->restaurent_id,
+            'restaurant_id' => $this->restaurant_id,
             'category_id'   => $this->category_id,
             'course_type'   => $this->course_type,
             'ingredients'   => $this->ingredients,
+            'price'         => $this->price,
             'image'         => $this->image,
             'discount'      => $this->discount,
             'vegi'          => $this->vegi,
@@ -22,7 +23,7 @@ class Details extends JsonResource
             'latitude'      => $this->latitude,
             'longitude'     => $this->longitude,
             'description'   => $this->description,
-            'status'        => $this->status,
+            'status'        => $this->status
         ];
     }
 }

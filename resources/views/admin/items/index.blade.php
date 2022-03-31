@@ -18,7 +18,7 @@
                         <th>No</th>
                         <th>Image</th>
                         <th>Name</th>
-                        <th>Restaurant</th>
+                        <th>Restaurant / Grocery</th>
                         <th>Price</th>
                         <th>Start</th>
                         <th>End</th>
@@ -31,7 +31,11 @@
                         <td>{{ $key + 1 }}</td>
                         <td><img src="{{ asset($value->image) }}" width="80"> </td>
                         <td>{{ $value->name }}</td>
-                        <td>{{ $value->restaurent->name }}</td>
+                        @if($value->restaurant !== NULL)
+                        <td>{{ $value->restaurant->name }} </td>
+                        @else
+                        <td>{{ $value->grocery->name }} </td>
+                        @endif
                         <td>{{ $value->price }}</td>
                         <td>{{ $value->start_date }}</td>
                         <td>{{ $value->end_date }}</td>

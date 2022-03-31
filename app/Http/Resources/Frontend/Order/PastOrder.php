@@ -10,11 +10,12 @@ class PastOrder extends JsonResource
     {   
         return [
             'id' => $this->id,
-            'Customer' => $this->user->name,
-            'Customer Address' => $this->user->address,
-            'Order Amount' => $this->grand_total,
-            'Order Date' => date('d-m-Y H:i:s', strtotime($this->created_at)),
-            // 'User' => (new GetUser($this->restaurent))->resolve()
+            'name' => $this->user->name,
+            'address' => $this->user->address,
+            'image' => $this->item->image,
+            'rating' => $this->rider->ratings,
+            'order_amount' => $this->grand_total,            
+            'order_date' => $this->created_at,
         ];
     }
 }
