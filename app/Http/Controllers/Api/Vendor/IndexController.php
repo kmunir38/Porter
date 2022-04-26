@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Restaurant;
+namespace App\Http\Controllers\Api\Vendor;
 
 use App\Http\Controllers\Controller;
 use App\Http\Traits\ApiResponse;

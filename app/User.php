@@ -13,8 +13,13 @@ use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\Traits\LogsActivity;
 use App\Http\Resources\Frontend\Customer\GetProfile as GetUserProfile;
 use App\Http\Resources\Frontend\Rider\GetProfile as GetRiderProfile;
+use App\Http\Resources\Frontend\Rider\GetRiderDetails as GetRider;
+use App\Http\Resources\Frontend\Order\OrdersArray as GetCashHistory;
+use App\Http\Resources\Frontend\Restaurant\GetRestaurant as GetRestProfile;
 use DB;
 use App\Rating;
+use Carbon\Carbon;
+use Hash;
 
 class User extends Authenticatable
 {
@@ -32,10 +37,10 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = ['added_by', 'updated_by', 'name', 'email', 'phone', 'address', 'image', 'password', 'otp', 'device_type', 'latitude', 'longitude', 'br_code',
-         'age', 'dob', 'country_code', 'country_flag', 'device_token', 'identity', 'id_image', 'description', 'verified_by', 'social_provider', 'social_token', 'social_id', 'onlineStatus', 'user_type'];
+         'age', 'dob', 'country_code', 'country_flag', 'device_token', 'identity', 'id_image', 'description', 'verified_by', 'social_provider', 'social_token', 'social_id', 'onlineStatus', 'min_order', 'order_type'];
 
     protected static $logAttributes = ['added_by', 'updated_by', 'name', 'email', 'phone', 'address', 'image', 'password', 'otp', 'device_type', 'latitude', 'longitude', 'br_code',
-         'age', 'dob', 'country_code', 'country_flag', 'device_token', 'identity', 'id_image', 'description', 'verified_by', 'social_provider', 'social_token', 'social_id', 'onlineStatus', 'user_type'];
+         'age', 'dob', 'country_code', 'country_flag', 'device_token', 'identity', 'id_image', 'description', 'verified_by', 'social_provider', 'social_token', 'social_id', 'onlineStatus', 'min_order', 'order_type'];
     protected static $logName = 'User';
     protected static $logOnlyDirty = true;
 
@@ -57,17 +62,38 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    protected $appends = ['ratings', 'count_ratings', 'earnings', 'spent', 'deliveries', 'cancel_orders', 'active_status'];
+    protected $appends = ['ratings', 'count_ratings', 'earnings', 'spent', 'deliveries',
+             'cancel_orders', 'active_status', 'user_role'];
+
+    public function GetUserRoleAttribute()
+    {
+        $data = DB::table('model_has_roles')->where('model_id', $this->id)->first();
+        if($data->role_id == 8){
+            return 'grocery';    
+        }
+        if($data->role_id == 6){
+            return 'restaurant';    
+        }
+        if($data->role_id == 7){
+            return 'shopper';    
+        }
+        if($data->role_id == 4){
+            return 'rider';    
+        }
+        if($data->role_id == 2){
+            return 'customer';    
+        }        
+    }
 
     public function getRatingsAttribute()
     {        
-        $rate = Rating::where('user_id', $this->id)->avg('rating');
+        $rate = Rating::where('serviceProvider_id', $this->id)->avg('rating');
         return $rate ?? 0;
     }
 
     public function getCountRatingsAttribute()
     {        
-        $rate = Rating::where('user_id', $this->id)->count('rating');
+        $rate = Rating::where('serviceProvider_id', $this->id)->count('rating');
         return $rate ?? 0;
     }
 
@@ -100,7 +126,7 @@ class User extends Authenticatable
 
     public function getSpentAttribute()
     {        
-        $data = Order::where('order_status', 'completed')->where('user_id', $this->id)->sum('grand_total');
+        $data = Order::where('order_status', 'completed')->where('customer_id', $this->id)->sum('grand_total');
         return $data;
     }
 
@@ -161,7 +187,7 @@ class User extends Authenticatable
                         $user->save();
                     }
 
-                    $user->token = 'Bearer' . $tokenResult->accessToken;
+                    $user->token = 'Bearer ' . $tokenResult->accessToken;
                     // $user->roles = $user->roles ?? [];
                     
                     return $user;
@@ -501,12 +527,12 @@ class User extends Authenticatable
         if($request->image){
         $image = $request->image;
         $image_name = rand().'.'. $image->getClientOriginalExtension();
-        $image->move(public_path('upload/users/img/'), $image_name);
+        $image->move(public_path('uploads/users/img/'), $image_name);
         }
         if($request->id_image){
         $idImg = $request->id_image;
         $id_image = rand().'.'. $idImg->getClientOriginalExtension();
-        $idImg->move(public_path('upload/users/img/'), $id_image);
+        $idImg->move(public_path('uploads/users/img/'), $id_image);
         }
         $record = $this::find($id);
         $record->name = $request->name ? $request->name : $currentName;
@@ -546,7 +572,7 @@ class User extends Authenticatable
     public function getProfile($request, $id)
     {
         $record = $this->find($id);
-
+        return $record;
         if (!$record) {
             return 'Unauthorized';
         }
@@ -563,6 +589,18 @@ class User extends Authenticatable
         }
 
         return (new GetRiderProfile($record))->resolve();
+    }
+
+    public function restaurantProfile($request, $id)
+    {
+        $record = $this->find($id);
+
+        if (!$record) {
+            return 'Unauthorized';
+        }
+        
+        return $record ?? '';
+        // return (new GetRestProfile($record))->resolve();
     }
 
     public function signOut($request)
@@ -806,6 +844,25 @@ class User extends Authenticatable
         return $user;
     }
 
+    public function getCashPaymentHistory($request)
+    {
+        $data = Order::where('rider_id', $request->riderID)->where('order_status', 'completed')->where('payment_method', 'cash')
+            ->whereDate('created_at', '=', date('Y-m-d', strtotime($request->date)))->get();
+        $result = GetCashHistory::collection($data)->toArray($request);    
+        return $result;
+    }
+    public function getCardPaymentHistory($request)
+    {
+        $data = Order::where('rider_id', $request->riderID)->where('order_status', 'completed')->where('payment_method', 'card')
+            ->whereDate('created_at', '=', date('Y-m-d', strtotime($request->date)))->get();
+        $result = GetCashHistory::collection($data)->toArray($request);    
+        return $result;
+    }
+    public function getUserDetails($request){
+        $user = User::where('id', $request->riderID)->select('id','name', 'image')->first();
+        $result = (new GetRider($user))->resolve();
+        return $result;
+    }
     public function item()
     {
         return $this->hasMany('App\Item', 'grocery_id');        
@@ -818,8 +875,11 @@ class User extends Authenticatable
 
     public function userRating()
     {
-        return $this->hasMany('App\Rating', 'user_id');
+        return $this->hasMany('App\Rating', 'customer_id');
     }
 
-    // Customer Section End Created By MYTECH MAESTRO
+    public function order()
+    {
+        return $this->hasMany('App\Order', 'rider_id');
+    }
 }

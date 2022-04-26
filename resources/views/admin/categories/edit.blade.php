@@ -10,12 +10,18 @@
               <div class="card-header">
                 <h4>Edit Category</h4>
               </div>
-              {!! Form::model($category, ['method' => 'PUT','route' => ['category.update', $category->id]]) !!}
+              {!! Form::model($category, ['method' => 'PUT','route' => ['expertise.update', $category->id]]) !!}
                 <div class="card-body">
                 <div class="form-group row mb-4">
                   <label class="col-form-label text-md-right col-12 col-md-3 col-lg-3">Name</label>
                   <div class="col-sm-12 col-md-7">
                     {!! Form::text('name', null, array('placeholder' => 'Name','class' => 'form-control')) !!}
+                  </div>
+                </div>
+                 <div class="form-group row mb-4">
+                  <label class="col-form-label text-md-right col-12 col-md-3 col-lg-3">Name</label>
+                  <div class="col-sm-12 col-md-7">
+                    {!! Form::text('use_for', null, array('placeholder' => 'Use For','class' => 'form-control')) !!}
                   </div>
                 </div>
                 <div class="form-group row mb-4">

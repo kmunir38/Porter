@@ -8,9 +8,9 @@ use Spatie\Activitylog\Traits\LogsActivity;
 class Coupon extends Model
 {
 	use LogsActivity;
-    protected $fillable = ['title', 'restaurant_id', 'grocery_id', 'voucher_code', 'discount', 'min_amount', 'exp_date', 'description'];
+    protected $fillable = ['title', 'voucher_code', 'discount', 'min_amount', 'exp_date', 'description'];
 
-    protected static $logAttributes = ['title', 'restaurant_id', 'grocery_id', 'voucher_code', 'discount', 'min_amount', 'exp_date', 'description'];
+    protected static $logAttributes = ['title','voucher_code', 'discount', 'min_amount', 'exp_date', 'description'];
     protected static $logName = 'Coupon';
     protected static $logOnlyDirty = true;
 

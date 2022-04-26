@@ -9,9 +9,14 @@ class ItemCategory extends Model
 {
 	use LogsActivity;
 
-    protected $fillable = ['name','status'];
+    protected $fillable = ['name','use_for','status'];
 
-    protected static $logAttributes = ['name', 'status'];
+    protected static $logAttributes = ['name','use_for','status'];
     protected static $logName = 'ItemCategory';
     protected static $logOnlyDirty = true;
+
+    public function item()
+    {
+    	return $this->hasMany('App\Item', 'category_id');
+    }
 }

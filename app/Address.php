@@ -8,9 +8,9 @@ use Spatie\Activitylog\Traits\LogsActivity;
 class Address extends Model
 {
    	use LogsActivity;
-    protected $fillable = ['user_id', 'address'];
+    protected $fillable = ['user_id', 'address', 'latitude', 'longitude', 'address_name' ];
 
-    protected static $logAttributes = ['user_id', 'address'];
+    protected static $logAttributes = ['user_id', 'address', 'latitude', 'longitude', 'address_name'];
     protected static $logName = 'Address';
     protected static $logOnlyDirty = true;
 

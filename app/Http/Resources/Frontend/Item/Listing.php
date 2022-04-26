@@ -12,7 +12,8 @@ class Listing extends JsonResource
             'rating' => $this->ratings,
             'price' => $this->price,
             'description' =>  $this->description,
-            'image'     =>  $this->image,
+            'image'     =>  $this->image,            
+            'item_count'     =>  $this->item_count ?? '',
         ];
     }
 }

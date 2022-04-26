@@ -12,14 +12,15 @@ class HomePage extends JsonResource
     public function toArray($request)
     {   
         return [
-            // 'search' => SearchFood::collection($this)->toArray($request),
-        	'id' => $this->id ?? '',
-        	'name' => $this->name ?? '',
-        	'ratings' => $this->ratings ?? '',
-        	'count_ratings' => $this->count_ratings ?? '',
-        	'image' => $this->items[0]->image ?? '',
+            'id' => $this->id ?? '',
+            'name' => $this->name ?? '',
+            'ratings' => $this->ratings ?? '',
+            'count_ratings' => $this->count_ratings ?? '',
+            'image' => $this->items[0]->image ?? '',
             // 'top foods' => (new MostPopular($this))->resolve() ?? '',
+            // 'search' => SearchFood::collection($this)->toArray($request),
             // 'recent items' => (new ListingItems($this))->resolve() ?? '',
         ];
     }
+    
 }

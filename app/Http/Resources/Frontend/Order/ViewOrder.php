@@ -10,9 +10,9 @@ class ViewOrder extends JsonResource
     {   
         return [
             'id' => $this->id,
-            'customer' => $this->user->name,
-            'customer_address' => $this->user->address,
-            'customer_image' => $this->user->image,            
+            'customer' => $this->customer->name,
+            'customer_address' => $this->customer->address,
+            'customer_image' => $this->customer->image,            
             'order_items'   => GetOrderItems::collection($this->itemsOrder)->toArray($request),
             'grand_total' => $this->grand_total,
             // 'User' => (new GetUser($this->restaurent))->resolve()

@@ -11,7 +11,8 @@ class View extends JsonResource
             'user' => $this->sender->name ?? '',
             'userImage' => $this->sender->image ?? '',
             'title' => $this->title ?? '',
-            'content' => $this->content  
+            'content' => $this->content,  
+            'deliver_time' => $this->created_at->diffForHumans()
         ];
     }
 }

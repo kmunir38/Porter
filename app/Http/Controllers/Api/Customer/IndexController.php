@@ -11,10 +11,13 @@ use App\Http\Resources\Frontend\Home\HomePage as GetHomeScreen;
 use App\Order;
 use App\User;
 use App\OrderItem;
+use App\Setting;
 use App\Rating;
+use App\Address;
 use App\Item;
 use Auth;
 use DB;
+
 class IndexController extends Controller
 {
 	use ApiResponse;
@@ -102,7 +105,10 @@ class IndexController extends Controller
 
     public function home(Request $request)
     {
-         $users = User::role('restaurant');
+        $users = User::where('onlineStatus', 1)->whereHas('roles', function ($query) use ($request) {                
+            return $query->where('name', $request->type);
+        });
+         // $users = User::role('restaurant')->select('id', 'name', 'image');
         
         if($request->latitude && $request->longitude && $request->distance) {
 
@@ -114,12 +120,13 @@ class IndexController extends Controller
             $users = $users->isWithinMaxDistance(['latitude' => $request->latitude, 'longitude' => $request->longitude], $distance);
         }
         $users = $users->get()->sortByDesc('ratings'); 
-        
+        // $data = array_values((array)$users->toArray()); 
+
         // $users = User::role('restaurant')->withCount(['userRating as average_rating' => function($query) {
         //     $query->select(DB::raw('coalesce(avg(rating),0)'));
         // }])->orderByDesc('average_rating')->get();
      
-       $result = GetHomeScreen::collection($users)->toArray($request);
+       $result = GetHomeScreen::collection($users);
         if ($users) {
             return $this->apiSuccessMessageResponse('success', $result);
         } else {
@@ -130,4 +137,50 @@ class IndexController extends Controller
             ]);
         }
     }
+
+    public function getDeliveryCost(Request $request)
+    {   
+
+        $setting = Setting::where('name', 'delivery_cost')->first();
+        $data = User::where('id',  $request->userID)->first();
+        $add = Address::where('id', $request->address_id)->first();
+        // $order = Order::where('order_status', 'pending')->where('customer_id', $request->userID)
+        // ->where('restaurant_id', $request->vendorID)
+        // ->orWhere('grocery_id', $request->vendorID)
+        // ->orWhere('shopper_id', $request->vendorID)
+        // ->latest()->first();
+
+        if($add){
+            $latitude   = $add->latitude;
+            $longitude  = $add->longitude;
+
+        $record = User::where('id', $request->vendorID)->selectRaw('*, ( 6367 * acos( cos( radians( ? ) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians( ? ) ) + sin( radians( ? ) ) * sin( radians( latitude ) ) ) ) AS distance', [$latitude, $longitude, $latitude])
+        ->having('distance', '<', 30)
+        ->orderBy('distance')
+        ->first();
+        $result = round($record->distance);
+        $cost = $result * $setting->value;
+       
+        return ['delivery_cost' => $cost, 'distance' => $result, 'customer_address' => $add->address, 'customer_latitude' => $add->latitude,
+                'customer_longitude' => $add->longitude];
+        
+        } else {
+
+        $latitude   = $data->latitude;
+        $longitude  = $data->longitude;
+
+        $record = User::where('id', $request->vendorID)->selectRaw('*, ( 6367 * acos( cos( radians( ? ) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians( ? ) ) + sin( radians( ? ) ) * sin( radians( latitude ) ) ) ) AS distance', [$latitude, $longitude, $latitude])
+        ->having('distance', '<', 30)
+        ->orderBy('distance')
+        ->first();
+        $result = round($record->distance);
+        $cost = $result * $setting->value;
+  
+        $address = User::where('id', $request->vendorID)->first();
+      
+        return ['delivery_cost' => $cost, 'distance' => $result, 'customer_address' => $address->address, 'customer_latitude' => $address->latitude,
+                'customer_longitude' => $address->longitude ];
+        }
+    }
 }
+    

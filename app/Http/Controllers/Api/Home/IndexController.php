@@ -10,6 +10,7 @@ use App\User;
 class IndexController extends Controller
 {  
     use ApiResponse;
+    
     public function homeScreen(Request $request)
     {
         $user = User::where('name', $request->id)->first();

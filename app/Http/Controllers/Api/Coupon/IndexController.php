@@ -13,7 +13,13 @@ class IndexController extends Controller
     use ApiResponse;
 	public function index(Request $request)
 	{
-		$coupons = Coupon::where('restaurant_id', $request->id)->get();
+		$coupons = Coupon::where('title', '>=', 0);
+            
+        if($request->restaurantID){
+            $coupons->where('restaurant_id', $request->restaurantID);
+        }
+        $coupons = $coupons->get();
+            
     	if (count($coupons) > 0) {
     		return $this->apiSuccessMessageResponse('success', $coupons);
         } else {
@@ -89,5 +95,32 @@ class IndexController extends Controller
         $coupon->delete();
 
         return $this->apiSuccessMessageResponse('Success', []);
+    }
+
+    public function verifyPromo(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'voucher_code'   => 'required|exists:coupons,voucher_code'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 0,
+                'message' => 'Invalid Promo Code',
+                'data' => []
+            ]);
+        }
+        $promoCode = $request->voucher_code;
+        $coupon = Coupon::where('voucher_code',  $promoCode)->first();
+
+        if($coupon->exp_date < now()){
+        return response()->json([
+                'status' => 0,
+                'message' => 'This promo code has been expired',
+                'data' => []
+            ]);
+        } else {
+            return $this->apiSuccessMessageResponse('Success', $coupon);    
+        }
     }
 }

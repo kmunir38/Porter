@@ -34,7 +34,8 @@ class IndexController extends Controller
         ]);
     	
     	$item 					= new ItemCategory();
-        $item->name 			= $request->name;        
+        $item->name             = $request->name;        
+        $item->user_for 			= $request->user_for;        
     	$item->save();
 
         Toastr::success('Category created successfully.', 'Success');
@@ -68,6 +69,7 @@ class IndexController extends Controller
     
     	$item 					= ItemCategory::find($id);
         $item->name 			= $request->name;        
+        $item->user_for         = $request->user_for;        
     	$item->save();
 
         Toastr::success('Category updated successfully.', 'Success');

@@ -13,8 +13,7 @@ class GetItems extends JsonResource
            'name' => $this->item->name,
            'qty' => $this->qty,
            'price' => $this->price,
-           'sub_total' => $this->sub_total,
-
+           'sub_total' => $this->sub_total
         ];
     }
 }

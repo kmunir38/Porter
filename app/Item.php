@@ -21,17 +21,16 @@ class Item extends Model
         $ratings = DB::table('ratings')->select('item_id', DB::raw('SUM(rating) as rate'))
                 ->groupBy('item_id')->orderBy('rating')->where('item_id', $this->id)
                 ->avg('rating');        
-        return $ratings;
+        return $ratings ?? 0;
     }
 
     public function getCountRatingAttribute($value)
     {    
-        $ratings = DB::table('ratings')->select('item_id', DB::raw('SUM(rating) as rate'))
-                ->groupBy('item_id')->orderBy('rating')->where('item_id', $this->id)
-                ->avg('rating');        
-        return $ratings;
+        $ratings = DB::table('ratings')->groupBy('item_id')->where('item_id', $this->id)
+                ->count('rating');        
+        return $ratings ?? 0;
     }
-       
+
     public function scopeIsWithinMaxDistance($query, $coordinates, $radius) 
     {
 
@@ -85,7 +84,7 @@ class Item extends Model
 
     public function getPopularItems()
     {
-        $items = Item::get()->sortByDesc('ratings');
+        $items = Item::get();
         return $items;
     }
 
@@ -112,5 +111,15 @@ class Item extends Model
     public function category()
     {
         return $this->belongsTo('App\ItemCategory', 'category_id');
+    }
+
+    public function OrderItem()
+    {
+        return $this->hasMany('App\OrderItem');
+    }
+
+    public function expert()
+    {
+        return $this->belongsTo('App\ItemExpertise', 'expertise');
     }
 }

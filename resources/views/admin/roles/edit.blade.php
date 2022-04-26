@@ -483,6 +483,45 @@
                             </td>
                         </tr>
                         <tr>
+                            <td>Expertise</td>
+                            <td>
+                                <div class="pretty p-icon p-jelly p-round p-bigger">
+                                    {{ Form::checkbox('permission[expertise-list]', 'expertise-list', $role->hasPermissionTo('expertise-list')) }}
+                                    <div class="state p-info">
+                                        <i class="icon material-icons">done</i>
+                                        <label>List</label>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="pretty p-icon p-jelly p-round p-bigger">
+                                    {{ Form::checkbox('permission[expertise-create]', 'expertise-create', $role->hasPermissionTo('expertise-create')) }}
+                                    <div class="state p-info">
+                                        <i class="icon material-icons">done</i>
+                                        <label>Create</label>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="pretty p-icon p-jelly p-round p-bigger">
+                                    {{ Form::checkbox('permission[expertise-edit]', 'expertise-edit', $role->hasPermissionTo('expertise-edit')) }}
+                                    <div class="state p-info">
+                                        <i class="icon material-icons">done</i>
+                                        <label>Edit</label>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="pretty p-icon p-jelly p-round p-bigger">
+                                    {{ Form::checkbox('permission[expertise-delete]', 'expertise-delete', $role->hasPermissionTo('expertise-delete')) }}
+                                    <div class="state p-info">
+                                        <i class="icon material-icons">done</i>
+                                        <label>Delete</label>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
                             <td>Dashboard</td>
                             <td>
                                 <div class="pretty p-icon p-jelly p-round p-bigger">

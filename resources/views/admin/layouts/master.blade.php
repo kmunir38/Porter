@@ -222,6 +222,20 @@
               </li>
             @endif
 
+             @if(Gate::check('expertise-list') || Gate::check('expertise-create'))
+              <li class="dropdown {{ Request::is('admin/expertise', 'admin/expertise/create') ? 'active' : '' }}">
+                <a href="javascript:void(0);" class="menu-toggle nav-link has-dropdown"><i data-feather="shopping-bag"></i><span>Item Expertise</span></a>
+                <ul class="dropdown-menu">
+                  @can('expertise-list')
+                    <li class="{{ Request::is('admin/expertise') ? 'active' : '' }}"><a class="nav-link" href="{{ route('expertise.index') }}">All Item Expertise</a></li>
+                  @endcan
+                  @can('expertise-create')
+                    <li class="{{ Request::is('admin/expertise/create') ? 'active' : '' }}"><a class="nav-link" href="{{ route('expertise.create') }}">Add Item Expertise</a></li>
+                  @endcan
+                </ul>
+              </li>
+            @endif
+
             @if(Gate::check('coupon-list') || Gate::check('coupon-create'))
               <li class="dropdown {{ Request::is('admin/coupons', 'admin/coupons/create') ? 'active' : '' }}">
                 <a href="javascript:void(0);" class="menu-toggle nav-link has-dropdown"><i data-feather="shopping-bag"></i><span>Coupons</span></a>

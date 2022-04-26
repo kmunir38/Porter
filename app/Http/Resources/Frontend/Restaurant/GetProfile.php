@@ -1,5 +1,5 @@
 <?php
-namespace App\Http\Resources\Frontend\Restaurent;
+namespace App\Http\Resources\Frontend\Restaurant;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Request;
 use App\Http\Resources\Frontend\Item\Listing as ItemList;

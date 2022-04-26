@@ -132,6 +132,15 @@ Route::group(['namespace' => 'Admin', 'prefix' => 'admin', 'middleware' => ['aut
         Route::any('category/{id}/destroy', 'IndexController@destroy')->name('category.destroy')->middleware('permission:category-delete');
     });
 
+    Route::group(['namespace' => 'Expertise'], function (){
+        Route::get('expertise', 'IndexController@index')->name('expertise.index')->middleware('permission:expertise-list');
+        Route::get('expertise/create', 'IndexController@create')->name('expertise.create')->middleware('permission:expertise-create');
+        Route::post('expertise', 'IndexController@store')->name('expertise.store')->middleware('permission:expertise-create');
+        Route::get('expertise/{id}/edit', 'IndexController@edit')->name('expertise.edit')->middleware('permission:expertise-edit');
+        Route::put('expertise/{id}', 'IndexController@update')->name('expertise.update')->middleware('permission:expertise-edit');
+        Route::any('expertise/{id}/destroy', 'IndexController@destroy')->name('expertise.destroy')->middleware('permission:expertise-delete');
+    });
+
     Route::group(['namespace' => 'Coupon'], function (){
         Route::get('coupons', 'IndexController@index')->name('coupon.index')->middleware('permission:coupon-list');
         Route::get('coupons/create', 'IndexController@create')->name('coupon.create')->middleware('permission:coupon-create');

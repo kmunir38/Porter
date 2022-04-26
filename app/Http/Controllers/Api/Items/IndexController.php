@@ -16,6 +16,8 @@ use App\Http\Resources\Frontend\Item\RecentItems as RecentItems;
 use Illuminate\Support\Facades\Validator;
 use App\Item;
 use App\ItemCategory;
+use App\ItemExpertise;
+use App\User;
 use DB;
 use Str;
 
@@ -45,7 +47,8 @@ class IndexController extends Controller
             'name'              => 'required',
             'price'             => 'required|numeric',
             'restaurant_id'     => 'required|exists:users,id',
-            'start_date'        => 'required|date'     
+            'image'             => 'required',
+            // 'start_date'        => 'required|date'     
         ]);
 
         if ($validator->fails()) {
@@ -137,7 +140,7 @@ class IndexController extends Controller
             }           
         }
 
-        $item->image       = 'public/uploads/items/img/' . $image_name;
+        $item->image       = ($image_name) ?'public/uploads/items/img/'. $image_name: $item->image;
         $item->discount    = $request->discount;
         $item->start_date  = $request->start_date;
         $item->end_date    = $request->end_date;
@@ -151,6 +154,13 @@ class IndexController extends Controller
 
     public function singleItem(Request $request)
     { 
+        $validator = Validator::make($request->all(), [
+            'id'         => 'required|exists:items,id'
+        ]);
+
+        if ($validator->fails()) {
+            return $this->apiValidatorErrorResponse('Invalid Parameters', $validator->errors());
+        }
         $id = $request->id;
         $data = Item::find($id);
         $result = (new ViewItem($data))->resolve();
@@ -186,7 +196,7 @@ class IndexController extends Controller
                 'message' => 'No Record Found',
                 'data' => []
             ]);        
-    }
+        }
     }
 
     public function latestOffers(Request $request)
@@ -207,7 +217,23 @@ class IndexController extends Controller
 
     public function getItemsbyCategory(Request $request)
     {
-       $item = Item::where('category_id', $request->catID)->get();
+        $item = Item::query();
+
+        if (!empty($request->catID)) {
+            $item = $item->where('category_id', $request->catID);
+        }
+
+        if (!empty($request->restID)) {
+            $item = $item->where('restaurant_id', $request->restID);
+        }
+
+        if (!empty($request->expertiseID)) {
+            $item = $item->where('expertise', $request->expertiseID);
+        }
+
+        $item = $item->get();
+
+       // $item = Item::where('category_id', $request->catID)->where('restaurant_id', $request->restID)->get();
        $result = GetByCategory::collection($item)->toArray($request);
         if ($item) {
             return $this->apiSuccessMessageResponse('success', $result);
@@ -266,9 +292,23 @@ class IndexController extends Controller
         }
     }
 
-    public function getAllCategories()
+    public function getRestaurantCategories()
     {
-        $data = ItemCategory::select('id', 'name')->get();
+        $data = ItemCategory::withCount('item')->where('use_for', 'restaurant')->get();
+        if(count($data) > 0){
+        return $this->apiSuccessMessageResponse('success', $data);
+        } else {
+            return response()->json([
+            'status' => 0,
+            'message' => 'No Record Found',
+            'data' => []
+        ]);
+        }
+    }
+
+    public function getGroceryCategories()
+    {
+        $data = ItemCategory::withCount('item')->where('use_for', 'grocery')->get();
         if(count($data) > 0){
         return $this->apiSuccessMessageResponse('success', $data);
         } else {
@@ -282,8 +322,13 @@ class IndexController extends Controller
 
     public function getRecentItems(Request $request)
     {
-        $data = Item::limit(5)->latest()->get();
-        $result = RecentItems::collection($data)->toArray($request);
+        $data = Item::whereHas('restaurant.roles', function ($query) use ($request) {                
+            return $query->where('name', $request->type);
+        });
+        $data = $data->get();
+        // $data = Item::where()->limit(5)->latest()->get();
+        $result = GetByCategory::collection($data)->toArray($request);        
+        // $result = RecentItems::collection($data)->toArray($request);
         if(count($data) > 0){
         return $this->apiSuccessMessageResponse('success', $result);
         } else {
@@ -308,5 +353,33 @@ class IndexController extends Controller
         ]);
         }
     }
-}
 
+    public function getItemsByExpertise(Request $request)
+    {
+        $data = Item::where('expertise', $request->expertiseID)->get();
+        $result = ListItems::collection($data)->toArray($request);
+        if(count($data) > 0){
+        return $this->apiSuccessMessageResponse('success', $data);
+        } else {
+            return response()->json([
+            'status' => 0,
+            'message' => 'No Record Found',
+            'data' => []
+        ]);
+        }
+    }
+
+    public function getAllExpertise()
+    {
+        $data = ItemExpertise::select('id', 'name', 'image')->get();        
+        if(count($data) > 0){
+        return $this->apiSuccessMessageResponse('success', $data);
+        } else {
+            return response()->json([
+            'status' => 0,
+            'message' => 'No Record Found',
+            'data' => []
+        ]);
+        }
+    }
+}

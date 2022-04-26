@@ -21,7 +21,8 @@ class IndexController extends Controller
     	$data['vat'] = Setting::where('name', 'vat')->first();
         $data['commission'] = Setting::where('name', 'commission')->first();
     	$data['whatsapp_number'] = Setting::where('name', 'whatsapp_number')->first();
-    	$data['address'] = Setting::where('name', 'address')->first();
+        $data['address'] = Setting::where('name', 'address')->first();
+    	$data['delivery_cost'] = Setting::where('name', 'delivery_cost')->first();
 
     	if ($data['company_name']) {
     		$data['company_name'] = $data['company_name']->value;
@@ -70,6 +71,12 @@ class IndexController extends Controller
     	} else {
     		$data['address'] = '';
     	}
+
+        if ($data['delivery_cost']) {
+            $data['delivery_cost'] = $data['delivery_cost']->value;
+        } else {
+            $data['delivery_cost'] = '';
+        }
 
     	return view('admin.settings.index', compact('data'));
     }

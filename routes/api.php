@@ -24,7 +24,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
         Route::post('register', 'AuthController@register');
         Route::post('verify-otp', 'AuthController@verifyOtp');
         Route::post('resend-otp', 'AuthController@resendOtp');
-        Route::get('forgot-password', 'AuthController@forgetPassword');
+        Route::post('forgot-password', 'AuthController@forgetPassword');
         Route::post('reset-password', 'AuthController@resetPassword');
 
         Route::group(['prefix' => 'social'], function() 
@@ -46,10 +46,13 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
         Route::group(['namespace' => 'Customer'], function()
         {
             Route::get('address', 'AddressController@index');
+            Route::post('address/add', 'AddressController@create');
+            Route::post('address/update', 'AddressController@update');
             Route::get('order-history', 'IndexController@orderHistory');
             Route::get('desserts', 'IndexController@desserts');
             Route::get('order-details', 'IndexController@orderDetails');
             Route::get('home', 'IndexController@home');
+            Route::post('delivery-cost', 'IndexController@getDeliveryCost');
         });        
             Route::post('addRemove', 'AuthController@AddRemove');  
       });
@@ -58,7 +61,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
     Route::group(['prefix' => 'rider'], function() {
 
         Route::post('login', 'AuthController@login');
-        Route::post('register', 'AuthController@register');
+        Route::post('register', 'AuthController@riderSignup');
         Route::post('verify-otp', 'AuthController@verifyOtp');
         Route::post('resend-otp', 'AuthController@resendOtp');
         Route::get('forgot-password', 'AuthController@forgetPassword');
@@ -78,6 +81,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
             Route::post('change-password', 'AuthController@changePassword');
             Route::post('/update-profile', 'AuthController@UpdateProfile');
             Route::post('saveUserDeviceToken', 'AuthController@saveUserDeviceToken');
+            Route::post('updateCoordinate', 'AuthController@updateCoordinate');
             Route::get('sign-out', 'AuthController@signOut');
 
         Route::group(['namespace' => 'Rider'], function()
@@ -85,11 +89,17 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
             Route::get('order-history', 'IndexController@orderHistory');
             Route::post('bank-info', 'IndexController@bankInfo');
             Route::post('add-vehicle', 'IndexController@addVehicle');
+            Route::get('balance-page', 'IndexController@balancePage');
+            Route::get('cash-OrderHistory', 'IndexController@cashOrders');
+            Route::get('card-OrderHistory', 'IndexController@cardOrders');
+            Route::get('new-order', 'IndexController@newOrder');
+            Route::get('countcashorders', 'IndexController@countCashOrders'); 
+            Route::post('update-locations', 'IndexController@updateRiderLocation'); 
         });
       });
     });
 
-    Route::group(['prefix' => 'restaurent'], function() {
+    Route::group(['prefix' => 'vendor'], function() {
 
         Route::post('login', 'AuthController@login');
         Route::post('register', 'AuthController@register');
@@ -108,15 +118,16 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
         Route::group(['middleware' => 'auth:api'], function() 
         {
             Route::get('/getProfile', 'AuthController@getProfile');
+            Route::get('/getRestProfile', 'AuthController@getRestProfile');
             Route::post('change-password', 'AuthController@changePassword');
             Route::post('/update-profile', 'AuthController@UpdateProfile');
             Route::post('saveUserDeviceToken', 'AuthController@saveUserDeviceToken');
             Route::get('sign-out', 'AuthController@signOut');
-            Route::group(['namespace' => 'Restaurent'], function()
+            Route::group(['namespace' => 'Vendor'], function()
             {
                 Route::get('order-history', 'IndexController@orderHistory');
                 Route::get('profile', 'IndexController@profile');
-                Route::get('all', 'IndexController@getAllRestaurents');
+                Route::get('all', 'IndexController@getAllRestaurants');
             });      
         });
     });
@@ -127,6 +138,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
         Route::post('/store', 'IndexController@store');
         Route::post('/update', 'IndexController@update');
         Route::post('/delete', 'IndexController@destroy');
+        Route::get('/verify-coupon', 'IndexController@verifyPromo');
     });
 
     Route::group(['prefix' => 'shopper'], function() {
@@ -135,7 +147,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
         Route::post('register', 'AuthController@register');
         Route::post('verify-otp', 'AuthController@verifyOtp');
         Route::post('resend-otp', 'AuthController@resendOtp');
-        Route::get('forgot-password', 'AuthController@forgetPassword');
+        Route::post('forgot-password', 'AuthController@forgetPassword');
         Route::post('reset-password', 'AuthController@resetPassword');
 
         Route::group(['prefix' => 'social'], function() 
@@ -202,9 +214,12 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
             Route::get('/getByUser', 'IndexController@getItemsbyUser');
             Route::get('/popular', 'IndexController@popularItems');
             Route::post('/searchFood', 'IndexController@searchItem');
-            Route::get('/getAllCategories', 'IndexController@getAllCategories');
+            Route::get('/getRestaurantCategories', 'IndexController@getRestaurantCategories');
+            Route::get('/getGroceryCategories', 'IndexController@getGroceryCategories');
             Route::get('/getRecentItems', 'IndexController@getRecentItems');
             Route::get('/getAllDiscounted', 'IndexController@getAllDiscounted');
+            Route::get('/getItemsByExpertise', 'IndexController@getItemsByExpertise');
+            Route::get('/getAllExpertise', 'IndexController@getAllExpertise');
         });        
 
         Route::group(['prefix' => 'orders', 'namespace' => 'Order'], function() {
@@ -215,12 +230,28 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
             Route::get('new-orders', 'IndexController@newOrders');
             Route::get('getitems', 'IndexController@getAllOrderItems');
             Route::get('view-order', 'IndexController@singleOrder');        
+            Route::post('complete-order', 'IndexController@completeOrder');        
+            Route::post('ready-order', 'IndexController@readyOrder');        
+            Route::get('getOrderView', 'IndexController@getOrderView');        
+            Route::post('assign', 'IndexController@assignOrder');        
+                   
         });
         Route::group(['namespace' => 'Notification', 'prefix' => 'notification'], function() {
             Route::get('/', 'IndexController@index');           
         });
+
+        Route::group(['namespace' => 'Card', 'prefix' => 'cards'], function() {
+            Route::get('/', 'IndexController@index');   
+            Route::post('/add', 'IndexController@create');
+            Route::post('/update', 'IndexController@updateStatus'); 
+        });
+
+        Route::group(['prefix' => 'saveDeviceToken'], function() {
+            Route::post('/', 'AuthController@saveDeviceToken');              
+        });  
     });  
     Route::group(['prefix' => 'contents', 'namespace' => 'Content'], function() {
             Route::get('/', 'IndexController@index');        
-    });   
+    });  
+
 }); 

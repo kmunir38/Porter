@@ -6,10 +6,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Traits\ApiResponse;
 use Illuminate\Support\Facades\Validator;
+use App\Classes\Helper;
 use stdClass;
 use Socialite;
 use Exception;
 use App\User;
+use App\BankInfo;
+use App\Vehicle;
 use Auth;
 
 class AuthController extends Controller
@@ -52,6 +55,132 @@ class AuthController extends Controller
         } else {
             return $this->apiValidatorErrorResponse('Invalid Parameters', $user->errors());
         }
+    }
+
+    public function riderSignup(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name'      => 'required|string|min:3|max:55',
+            'email'     => 'required|string|email|min:5|max:155|unique:users',
+            'phone'     => 'nullable|numeric|digits_between:9,14',
+            'role'      => 'exists:roles,id',
+            'password'  => 'required|string|min:6|max:16|confirmed'
+        ]);
+
+        if ($validator->fails()) {
+            return $this->apiValidatorErrorResponse('Invalid Parameters', $validator->errors());
+        }
+        
+        $token = mt_rand(1000, 9999);
+         
+        $user               = new User();
+        $user->name         = $request->name;
+        $user->email        = $request->email;
+        $user->phone        = $request->phone;
+        $user->password     = bcrypt($request->password);
+        $user->country_code = $request->country_code;
+        $user->address      = $request->address;
+        $user->verified_by  = 'email';
+        $user->br_code      = $request->br_code;
+        $user->latitude     = $request->latitude;
+        $user->longitude    = $request->longitude;
+        $user->image        = 'public/uploads/users/img/user-avatar.png';
+        $user->otp          = $token;              
+        $user->assignRole($request->role);
+        $user->save();
+
+        $record = new BankInfo();
+        $record->user_id = $user->id;
+        $record->fullname = $request->name;
+        $record->bank_name = $request->bank_name;
+        $record->acc_no = $request->acc_no;
+        $record->iban = $request->iban;
+        $record->branch = $request->branch;
+        $record->save();
+    
+
+        $image = $request->vehicle_image;
+        $licenseImg = $request->license;
+        $data = new Vehicle();
+        
+        if ($image) {
+          $image_name = "";
+          if (preg_match('/^data:image\/(\w+);base64,/', $image, $type)) {
+
+            $encoded_base64_image = substr($image, strpos($image, ',') + 1);
+            $type = strtolower($type[1]);
+
+            $decoded_image = base64_decode($encoded_base64_image);
+
+            $resized_image = \Intervention\Image\Facades\Image::make($decoded_image);
+            $path = public_path('uploads/vehicles');
+
+            if (!file_exists($path))
+            {
+                mkdir($path);
+            }
+
+            $image_name = uniqid().'.'.'png';
+
+            \File::put(public_path('uploads/vehicles') . '/' . $image_name,(string) $resized_image->encode());
+            }   
+        }
+
+        if ($licenseImg) {
+          $licence = "";
+          if (preg_match('/^data:image\/(\w+);base64,/', $licenseImg, $type)) {
+
+            $encoded_base64_image = substr($image, strpos($licenseImg, ',') + 1);
+            $type = strtolower($type[1]);
+
+            $decoded_image = base64_decode($encoded_base64_image);
+
+            $resized_image = \Intervention\Image\Facades\Image::make($decoded_image);
+            $path = public_path('uploads/vehicles');
+
+            if (!file_exists($path))
+            {
+                mkdir($path);
+            }
+
+            $license = uniqid().'.'.'png';
+
+            \File::put(public_path('uploads/vehicles') . '/' . $license,(string) $resized_image->encode());
+            }  
+        }
+
+        $data->rider_id     = $user->id;
+        $data->brand        = $request->brand;
+        $data->model        = $request->model;
+        $data->year         = $request->year;   
+        $data->vehicle_no   = $request->vehicle_no;
+        $data->license      = 'public/uploads/vehicles/'.$license;
+        $data->vehicle_image = 'public/uploads/vehicles/'.$image_name;
+        $data->save();
+               
+        if($user instanceof User)
+        {
+            if($request->verified_by == 'email') {
+                $message = "The Verification link has been sent to your email";
+            }
+            return $this->apiSuccessMessageResponse($message, $user);
+        }
+
+        if(gettype($user) == 'string') {
+            return $this->apiErrorMessageResponse($user, []);
+        } else {
+            return $this->apiValidatorErrorResponse('Invalid Parameters', $user->errors());
+        }
+
+        if($user->verified_by == 'email') {
+            $data = [
+                'email' => $user->email,
+                'name' => $user->name,
+                'subject' => 'Account verification code',
+            ];
+
+            Helper::sendEmail('accountVerification', ['data' => $data], $data);
+        }       
     }
 
     public function verifyOtp(Request $request)
@@ -168,6 +297,12 @@ class AuthController extends Controller
         return $this->apiSuccessMessageResponse('success', $data);
     }
 
+    public function getRestProfile(Request $request)
+    {
+        $data['records'] = (new User())->restaurantProfile($request, Auth::user()->id);
+        return $this->apiSuccessMessageResponse('success', $data);
+    }
+
     public function riderProfile(Request $request)
     {
         $data['records'] = (new User())->riderProfile($request, Auth::user()->id);
@@ -187,7 +322,7 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name'      => 'nullable|string|between:3,55',
-            'email'     => 'nullable|email',
+            'email'     => 'nullable',
             'phone'     => 'nullable|numeric|digits_between:9,14',
         ]);
 
@@ -353,10 +488,51 @@ class AuthController extends Controller
             $record->save();
         } else {
             $record->onlineStatus = 0;
-            $record->save();
+            $record->save();    
         }
         if ($record instanceof \App\User) {
             return $this->apiSuccessMessageResponse('Success', []);
+        }
+    }
+
+    public function saveDeviceToken(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'device_token' => 'required',           
+             ]);
+         if ($validator->fails()) {
+                return $this->apiValidatorErrorResponse('Invalid Parameters', $validator->errors());
+            }
+        $userID = Auth::user()->id;
+        $profile = User::find($userID);
+        $profile->device_token = $request->device_token;
+        $profile->save();
+
+        if($profile instanceof \App\User ) {
+            return $this->apiSuccessMessageResponse('Device Token Updated ', []);
+        }
+    }
+
+    public function updateCoordinate(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'latitude' => 'required',
+            'longitude' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->apiValidatorErrorResponse('Invalid Parameters', $validator->errors());
+        }
+
+        $rider = User::find(Auth::user()->id);
+
+        $rider->update([
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+        ]);
+
+        if ($rider) {
+            return $this->apiSuccessMessageResponse('Coordinate Updated Successfully');
         }
     }
 }

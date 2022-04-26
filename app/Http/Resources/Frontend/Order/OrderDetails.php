@@ -15,8 +15,8 @@ class OrderDetails extends JsonResource
             'qty'       => $this->qty,
             'sub_total' => $this->sub_total,
             'total'     => $this->orders->grand_total, 
-            'spent'     => $this->orders->user->spent,
-            'user'      => (new GetUser($this->orders->user))->resolve()
+            'spent'     => $this->orders->customer->spent,
+            'user'      => (new GetUser($this->orders->customer))->resolve()
         ];
     }
 }

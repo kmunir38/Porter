@@ -6,10 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Http\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Resources\Frontend\Rider\BalancePage as GetBalancePage;
+use App\Http\Resources\Frontend\Order\CashOrders as GetCashOrderHistory;
+use App\Http\Resources\Frontend\Order\NewOrder as GetOrderItems;
+use App\Http\Resources\Frontend\Order\CountCashOrders as GetOrdersCount;
 use App\Order;
 use App\BankInfo;
 use App\Vehicle;
+use App\User;
+use App\Setting;
 use Auth;
+use DB;
 
 class IndexController extends Controller
 {
@@ -131,5 +138,114 @@ class IndexController extends Controller
         $data->save();
         
         return $this->apiSuccessMessageResponse('success', $data);
+    }
+
+    public function balancePage(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return $this->apiValidatorErrorResponse('Invalid Parameters', $validator->errors());
+        }
+
+        $record = User::where('id', $request->id)->first();
+        $result = (new GetBalancePage($record))->resolve();            
+        
+        return $this->apiSuccessMessageResponse('success', $result);
+    }
+
+
+    // cash orders api
+    public function cashOrders(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'riderID' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return $this->apiValidatorErrorResponse('Invalid Parameters', $validator->errors());
+        }
+        $commission = Setting::where('name', 'commission')->first();
+        $data['user'] = (new User())->getUserDetails($request, Auth::user()->id);
+        $data['cash_orders_today'] = Order::where('rider_id', $request->riderID)->where('order_status', 'completed')->where('payment_method', 'cash')->whereDate('created_at', '=', date('Y-m-d', strtotime($request->date)))->count('id');
+        $data['cash_orders_commission'] = Order::where('rider_id', $request->riderID)->where('order_status', 'completed')->where('payment_method', 'cash')->whereDate('created_at', '=', date('Y-m-d', strtotime($request->date)))->sum('delivery_cost');
+        $data['balanceTo_porter'] = round($data['cash_orders_commission'] / 100 * $commission->value, 2);
+        $data['total'] = round($data['cash_orders_commission'] - $data['balanceTo_porter'], 2);
+
+        $data['records'] = (new User())->getCashPaymentHistory($request, Auth::user()->id);
+
+        if ($data['records'] == null) {
+            return $this->apiErrorMessageResponse('No Record Found!');
+        }
+   
+        // $result = GetCashOrderHistory::collection($data)->toArray($request);    
+        return $this->apiSuccessMessageResponse('success', $data);
+    }
+
+    // card orders api
+
+    public function cardOrders(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'riderID' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return $this->apiValidatorErrorResponse('Invalid Parameters', $validator->errors());
+        }
+
+        $commission = Setting::where('name', 'commission')->first();
+        $data['user'] = (new User())->getUserDetails($request, Auth::user()->id);
+        $data['cash_orders_today'] = Order::where('rider_id', $request->riderID)->where('order_status', 'completed')->where('payment_method', 'cash')->whereDate('created_at', '=', date('Y-m-d', strtotime($request->date)))->count('id');
+        $data['cash_orders_commission'] = Order::where('rider_id', $request->riderID)->where('order_status', 'completed')->where('payment_method', 'cash')->whereDate('created_at', '=', date('Y-m-d', strtotime($request->date)))->sum('delivery_cost');
+        $data['balanceTo_porter'] = round($data['cash_orders_commission'] / 100 * $commission->value, 2);
+        $data['total'] = round($data['cash_orders_commission'] - $data['balanceTo_porter'], 2);        
+        $data['records'] = (new User())->getCardPaymentHistory($request, Auth::user()->id);
+
+        if ($data['records'] == null) {
+            return $this->apiErrorMessageResponse('No Record Found!');
+        }
+   
+        // $result = GetCashOrderHistory::collection($data)->toArray($request);    
+        return $this->apiSuccessMessageResponse('success', $data);
+    }
+
+    public function newOrder(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'riderID' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return $this->apiValidatorErrorResponse('Invalid Parameters', $validator->errors());
+        }
+
+        $record = Order::where('rider_id', $request->riderID)->where('order_status', 'pending')->first();         
+        $result = (new GetOrderItems($record))->resolve();    
+        return $this->apiSuccessMessageResponse('success', $result  );
+    }
+
+
+    public function updateRiderLocation(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'userID' => 'required',           
+            'latitude' => 'required',           
+            'longitude' => 'required',           
+             ]);
+         if ($validator->fails()) {
+                return $this->apiValidatorErrorResponse('Invalid Parameters', $validator->errors());
+            }
+        $userID = $request->userID;
+        $data = User::find($userID);
+        $data->latitude = $request->latitude;
+        $data->longitude = $request->longitude;
+        $data->save();
+
+        if($data instanceof \App\User ) {
+            return $this->apiSuccessMessageResponse('Success', ['latitude' => $data->latitude, 'longitude' => $data->longitude]);
+        }
     }
 }

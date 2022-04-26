@@ -3,11 +3,11 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Item;
 
 class OrderItem extends Model
 {
     protected $fillable = ['order_id', 'item_id', 'price', 'sub_total'];
-
 
     public function order()
     {
