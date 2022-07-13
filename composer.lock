@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "68f12c3e1c24f03c46d6c641c9ea5a18",
+    "content-hash": "af42537f5e2c3d2ae8802aca371a302f",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -589,6 +589,60 @@
                 }
             ],
             "time": "2020-12-29T14:50:06+00:00"
+        },
+        {
+            "name": "faso-dev/orange-money-burkina-sdk",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/faso-dev/orange-money-burkina-sdk.git",
+                "reference": "9256aab7cebe2fd42cfd2315dfe1ae4e5733c9d8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/faso-dev/orange-money-burkina-sdk/zipball/9256aab7cebe2fd42cfd2315dfe1ae4e5733c9d8",
+                "reference": "9256aab7cebe2fd42cfd2315dfe1ae4e5733c9d8",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "ext-simplexml": "*",
+                "php": ">=7.4"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Fasodev\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Yentema Nadjoari",
+                    "email": "n.yenteck@gmail.com"
+                },
+                {
+                    "name": "S.C Jerôme ONADJA",
+                    "email": "jeromeonadja28@gmail.com"
+                },
+                {
+                    "name": "Faso dev",
+                    "homepage": "https://github.com/faso-dev"
+                }
+            ],
+            "description": "Ce package est une API qui encapsule l'API de base de Orange Money Burkina",
+            "support": {
+                "issues": "https://github.com/faso-dev/orange-money-burkina-sdk/issues",
+                "source": "https://github.com/faso-dev/orange-money-burkina-sdk/tree/v1.0.0"
+            },
+            "time": "2021-12-23T20:01:28+00:00"
         },
         {
             "name": "fideloper/proxy",
@@ -8870,5 +8924,5 @@
         "php": "^7.2.5|^8.0"
     },
     "platform-dev": [],
-    "plugin-api-version": "1.1.0"
+    "plugin-api-version": "2.2.0"
 }

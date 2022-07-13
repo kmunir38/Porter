@@ -8,7 +8,7 @@
           <div class="col-12">
             <div class="card">
               <div class="card-header">
-                <h4>Restaurants Lists</h4>
+                <h4>Shoppers Lists</h4>
               </div>
               <div class="card-body">
                 <div class="table-responsive">
@@ -19,6 +19,7 @@
                         <th>Name</th>
                         <th>Email</th>
                         <th>Role</th>
+                        <th>Assigned Grocery</th>
                         <th>Action</th>
                       </tr>
                     </thead>
@@ -35,9 +36,13 @@
                                 @endforeach
                             @endif
                         </td>
+                        <td>{{ $user->grocery->name ?? ''}}</td>
                         <td>
                             @can('rider-edit')
                                <a class="btn btn-primary" href="{{ route('restaurant.edit',$user->id) }}">Edit</a>
+                            @endcan
+                            @can('user-create')
+                               <a class="btn btn-success" href="{{ route('shopper.assign', $user->id) }}">Assing Grocery</a>
                             @endcan
                             @can('rider-delete')
                             <button class="btn btn-danger" type="button" onclick="deleteItem({{ $user->id }})">
@@ -48,7 +53,7 @@
                                 @csrf
                                 @method('DELETE')
                             </form>
-                            @endcan
+                            @endcan                            
                         </td>
                       </tr>
                       @endforeach

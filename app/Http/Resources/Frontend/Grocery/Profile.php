@@ -14,6 +14,7 @@ class Profile extends JsonResource
             'email'     => $this->email ?? '',
             'phone'     => $this->phone ?? '',
             'earning'   => $this->earning ?? '',
+            'shopper'   => $this->shopper ?? '',
             'all_items'  => $this->item ?? '', 
         ];
     }

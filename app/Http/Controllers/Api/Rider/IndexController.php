@@ -15,6 +15,7 @@ use App\BankInfo;
 use App\Vehicle;
 use App\User;
 use App\Setting;
+use App\Wallet;
 use Auth;
 use DB;
 
@@ -227,7 +228,6 @@ class IndexController extends Controller
         return $this->apiSuccessMessageResponse('success', $result  );
     }
 
-
     public function updateRiderLocation(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -246,6 +246,59 @@ class IndexController extends Controller
 
         if($data instanceof \App\User ) {
             return $this->apiSuccessMessageResponse('Success', ['latitude' => $data->latitude, 'longitude' => $data->longitude]);
+        }
+    }
+
+    public function getWalletBalance(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'riderID' => 'required|exists:users,id'           
+           ]);
+
+        if ($validator->fails()) {
+               return $this->apiValidatorErrorResponse('Invalid Parameters', $validator->errors());
+           }
+        $riderID = $request->riderID;
+        $data = Wallet::with('rider:id,name')->where('rider_id', $riderID)->select('id', 'rider_id', 'balance')->first();
+        
+        if($data) {
+            return $this->apiSuccessMessageResponse('Success', $data);
+        } else {
+            return response()->json([
+                'status' => '0',
+                'message' => ' No Record Found', 
+                'data'   => []
+                ]);
+        }
+    }
+    
+    public function getWithdraw(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'walletID' => 'required|exists:wallet,id'           
+           ]);
+
+        if ($validator->fails()) {
+               return $this->apiValidatorErrorResponse('Invalid Parameters', $validator->errors());
+           }
+
+        $walletID = $request->walletID;
+       
+        $total = $data->withdrawn + $request->amount;             
+        
+        $data->withdrawn = $total;
+        $data->balance = $data->balance - $request->amount;
+        $data->save();
+
+        $record                     = new WalletHistory();
+        $record->wallet_id          = $data->id;
+        $record->rider_id           = $data->rider_id;
+        $record->withdraw_amount    = $request->amount;
+        $record->date               = now();
+        $record->save();
+
+        if($data instanceof \App\Wallet ) {
+            return $this->apiSuccessMessageResponse('Success', $data);
         }
     }
 }

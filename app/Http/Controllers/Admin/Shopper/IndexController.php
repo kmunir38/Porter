@@ -108,4 +108,19 @@ class IndexController extends Controller
        	return redirect()->route('shopper.index');
     }
 
+    public function getAssignView($id)
+    {
+        $data = User::find($id);
+        $groceries = User::role('grocery')->pluck('name', 'id');
+        return view('admin.shoppers.assign', compact('data', 'groceries'));
+    }
+
+    public function assignGrocery(Request $request, $id)
+    {
+        $data = User::find($id);
+
+        $data->assigned_grocery = $request->assigned_grocery;
+        $data->save();        
+        return redirect()->route('shopper.index');
+    }
 }

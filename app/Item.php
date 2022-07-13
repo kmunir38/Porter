@@ -8,9 +8,9 @@ use Auth;
 class Item extends Model
 {
 	use LogsActivity;
-    protected $fillable = ['name','restaurant_id', 'category_id', 'rider_id', 'grocery_id', 'shopper_id', 'price', 'ingredients', 'image', 'discount', 'start_date', 'end_date', 'status', 'description'];
+    protected $fillable = ['name','restaurant_id', 'category_id', 'rider_id', 'grocery_id', 'shopper_id', 'price', 'ingredients', 'image', 'discount', 'start_date', 'end_date', 'status', 'description', 'qr_code'];
 
-    protected static $logAttributes = ['name','restaurant_id', 'category_id', 'rider_id', 'grocery_id', 'shopper_id', 'price', 'ingredients', 'image', 'discount', 'start_date', 'end_date', 'status', 'description'];
+    protected static $logAttributes = ['name','restaurant_id', 'category_id', 'rider_id', 'grocery_id', 'shopper_id', 'price', 'ingredients', 'image', 'discount', 'start_date', 'end_date', 'status', 'description', 'qr_code'];
     protected static $logName = 'Item';
     protected static $logOnlyDirty = true;
 

@@ -51,7 +51,7 @@ class IndexController extends Controller
 
     public function getAllRestaurants(Request $request)
     {
-        $data = User::role('restaurant')->get();
+        $data = User::role(['restaurant', 'grocery', 'shopper'])->get();
         $result = GetRestaurant::collection($data)->toArray($request);
         if (count($data) !== null) {
 

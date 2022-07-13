@@ -12,6 +12,7 @@ use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\Traits\LogsActivity;
 use App\Http\Resources\Frontend\Customer\GetProfile as GetUserProfile;
+use App\Http\Resources\Frontend\Shopper\GetProfile as GetShopperProfile;
 use App\Http\Resources\Frontend\Rider\GetProfile as GetRiderProfile;
 use App\Http\Resources\Frontend\Rider\GetRiderDetails as GetRider;
 use App\Http\Resources\Frontend\Order\OrdersArray as GetCashHistory;
@@ -37,10 +38,10 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = ['added_by', 'updated_by', 'name', 'email', 'phone', 'address', 'image', 'password', 'otp', 'device_type', 'latitude', 'longitude', 'br_code',
-         'age', 'dob', 'country_code', 'country_flag', 'device_token', 'identity', 'id_image', 'description', 'verified_by', 'social_provider', 'social_token', 'social_id', 'onlineStatus', 'min_order', 'order_type'];
+         'age', 'dob', 'country_code', 'country_flag', 'device_token', 'identity', 'id_image', 'description', 'verified_by', 'social_provider', 'social_token', 'social_id', 'onlineStatus', 'min_order', 'order_type', 'confirm_payment_proceed', 'wallet'];
 
     protected static $logAttributes = ['added_by', 'updated_by', 'name', 'email', 'phone', 'address', 'image', 'password', 'otp', 'device_type', 'latitude', 'longitude', 'br_code',
-         'age', 'dob', 'country_code', 'country_flag', 'device_token', 'identity', 'id_image', 'description', 'verified_by', 'social_provider', 'social_token', 'social_id', 'onlineStatus', 'min_order', 'order_type'];
+         'age', 'dob', 'country_code', 'country_flag', 'device_token', 'identity', 'id_image', 'description', 'verified_by', 'social_provider', 'social_token', 'social_id', 'onlineStatus', 'min_order', 'order_type', 'confirm_payment_proceed', 'wallet'];
     protected static $logName = 'User';
     protected static $logOnlyDirty = true;
 
@@ -62,27 +63,29 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    protected $appends = ['ratings', 'count_ratings', 'earnings', 'spent', 'deliveries',
+    protected $appends = ['ratings', 'count_ratings', 'earnings', 'spent', 'rider_deliveries', 'shopper_deliveries',
              'cancel_orders', 'active_status', 'user_role'];
 
     public function GetUserRoleAttribute()
     {
         $data = DB::table('model_has_roles')->where('model_id', $this->id)->first();
-        if($data->role_id == 8){
-            return 'grocery';    
+        if($data){
+            if($data->role_id == 8){
+                return 'grocery';    
+            }
+            if($data->role_id == 6){
+                return 'restaurant';    
+            }
+            if($data->role_id == 7){
+                return 'shopper';    
+            }
+            if($data->role_id == 4){
+                return 'rider';    
+            }
+            if($data->role_id == 2){
+                return 'customer';    
+            }        
         }
-        if($data->role_id == 6){
-            return 'restaurant';    
-        }
-        if($data->role_id == 7){
-            return 'shopper';    
-        }
-        if($data->role_id == 4){
-            return 'rider';    
-        }
-        if($data->role_id == 2){
-            return 'customer';    
-        }        
     }
 
     public function getRatingsAttribute()
@@ -112,9 +115,15 @@ class User extends Authenticatable
         return $data;
     }
 
-    public function getDeliveriesAttribute()
+    public function getRiderDeliveriesAttribute()
     {        
-        $data = Order::where('rider_id', $this->id)->count('rider_id');
+        $data = Order::where('rider_id', $this->id)->where('order_status', 'completed')->count('rider_id');
+        return $data;
+    }
+    
+    public function getShopperDeliveriesAttribute()
+    {        
+        $data = Order::where('grocery_id', $this->assigned_grocery)->where('order_status', 'completed')->count('grocery_id');
         return $data;
     }
 
@@ -206,7 +215,7 @@ class User extends Authenticatable
     public function resendOtp($request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:users,id'
+            'email' => 'required|email|exists:users,email'
         ]);
 
         if ($validator->fails()) {
@@ -243,9 +252,8 @@ class User extends Authenticatable
 
     public function login($request)
     {
-        if($request->has('email')) {
-            $validationRules['email'] = 'required|string|email';
-        }
+        $validationRules['email'] = 'required|string|email';
+        
         $validationRules['password'] = 'required|string|min:6|max:16';
         $validationRules['device_type'] = 'in:android,ios';
         $validationRules['device_token'] = 'string|max:255';
@@ -325,7 +333,12 @@ class User extends Authenticatable
         $validationRules['verified_by'] = 'required|in:email';
         $validationRules['email'] = 'required|string|email|min:5|max:155|unique:users';
         $validationRules['role'] = 'exists:roles,id';
-
+        $validationRules['phone'] = 'required';
+        
+        if($request->role == 6 || $request->role == 8){
+            $validationRules['address'] = 'required';
+        }
+        
         $validator = Validator::make($request->all(), $validationRules);
 
         if ($validator->fails()) {
@@ -572,12 +585,22 @@ class User extends Authenticatable
     public function getProfile($request, $id)
     {
         $record = $this->find($id);
-        return $record;
+        // return $record;
         if (!$record) {
             return 'Unauthorized';
         }
 
         return (new GetUserProfile($record))->resolve();
+    }
+    
+    public function shopperProfile($request, $id)
+    { 
+        $record = $this->find($id);
+        if (!$record) {
+            return 'Unauthorized';
+        }
+
+        return (new GetShopperProfile($record))->resolve();
     }
 
     public function riderProfile($request, $id)
@@ -798,11 +821,11 @@ class User extends Authenticatable
             $record->social_provider = 'apple';
             $record->social_token = $request->social_token;
             $record->email_verified_at = date('Y-m-d H:i:s');
-            $record->isFirstTime = 1;
+            // $record->isFirstTime = 1;
             $record->assignRole(2);
             $record->save();
         } else {
-            $record->isFirstTime = 0;
+            // $record->isFirstTime = 0;
             $record->save();
         }
 
@@ -882,4 +905,22 @@ class User extends Authenticatable
     {
         return $this->hasMany('App\Order', 'rider_id');
     }
+    
+    public function addresses()
+    {
+        return $this->hasMany('App\Address', 'id', 'address_id');
+    }
+    
+    public function grocery(){
+        return $this->belongsTo('App\User', 'assigned_grocery');
+    }
+    
+    public function shopper()
+    {
+        return $this->belongsTo('App\User', 'assigned_grocery');
+    } 
+    public function cancel_orders()
+    {
+        return $this->hasMany('App\CancelOrder', 'id');
+    }  
 }

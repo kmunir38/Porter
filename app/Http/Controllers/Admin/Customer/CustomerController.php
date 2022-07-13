@@ -20,10 +20,7 @@ class CustomerController extends Controller
      */
     public function index(Request $request)
     {
-        $users = User::whereHas('roles', function ($query) {
-            return $query->whereNotIn('name',['Rider','Admin']);
-        });
-        $users = $users->orderBy('id', 'desc')->get();
+        $users = User::role('customer')->latest()->get();
         return view('admin.customers.index',compact('users'));
     }
     

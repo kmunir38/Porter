@@ -8,8 +8,8 @@ class Helper
     {
         try {
             Mail::send('emails.'.$file, $parameter, function ($message) use ($use) {
-                $message->to($use['email'], $use['name'])->bcc(['test@dynout.com'])->subject($use['subject']);
-                $message->from('support@reignsol.com', 'Dynout');
+                $message->to($use['email'], $use['name'])->subject($use['subject']);
+                $message->from('porter.delivery.app@gmail.com', 'Porter Delivery');
             });
         } catch (\Exception $ex) {
             // dd($ex);

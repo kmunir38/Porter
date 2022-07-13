@@ -9,13 +9,16 @@ class ViewOrder extends JsonResource
     public function toArray($request)
     {   
         return [
-            'id' => $this->id,
-            'customer' => $this->customer->name,
-            'customer_address' => $this->customer->address,
-            'customer_image' => $this->customer->image,            
-            'order_items'   => GetOrderItems::collection($this->itemsOrder)->toArray($request),
-            'grand_total' => $this->grand_total,
-            // 'User' => (new GetUser($this->restaurent))->resolve()
+            'id' => $this->id ?? '',
+            'customer' => $this->customer->name ?? '',
+            'customer_address' => $this->address->address ?? '',
+            'customer_image' => $this->customer->image ?? '',            
+            'order_items'   => GetOrderItems::collection($this->itemsOrder)->toArray($request) ?? '',
+            'delivery_cost'   => $this->delivery_cost ?? '',
+            'grand_total' => $this->grand_total ?? '',
+            'order_status' => $this->order_status ?? '',
+             'vat' => $this->vat ?? '',
+            'vat_amount' => $this->vat_amount ?? ''
         ];
     }
 }

@@ -14,16 +14,18 @@ use App\User;
 use App\BankInfo;
 use App\Vehicle;
 use Auth;
+use DB;
 
 class AuthController extends Controller
 {
     use ApiResponse;
-
+    
     public function login(Request $request)
     {
         $user = new User();
+        
         $user = $user->login($request);
-
+        
         if($user instanceof \App\User ) {
             return $this->apiSuccessMessageResponse('Successfully logged in', $user);
         }
@@ -34,7 +36,68 @@ class AuthController extends Controller
             return $this->apiVerificationResponse($user['error'], $user['user'], 2);
         } else {
             return $this->apiValidatorErrorResponse('Invalid Parameters', $user->errors());
+        }        
+    }
+
+    public function customer_login(Request $request)
+    {
+        $user = new User();
+       
+            $user = $user->login($request);
+            
+            if($user instanceof \App\User ) {
+                return $this->apiSuccessMessageResponse('Successfully logged in', $user);
+            }
+
+            if(gettype($user) == 'string') {
+                return $this->apiErrorMessageResponse($user, []);
+            } elseif(gettype($user) == 'array') {
+                return $this->apiVerificationResponse($user['error'], $user['user'], 2);
+            } else {
+                return $this->apiValidatorErrorResponse('Invalid Parameters', $user->errors());
+            }
+    }
+
+    public function rider_login(Request $request)
+    {
+        $user = new User();
+        
+            $user = $user->login($request);
+            
+            if($user instanceof \App\User ) {
+                return $this->apiSuccessMessageResponse('Successfully logged in', $user);
+            }
+
+            if(gettype($user) == 'string') {
+                return $this->apiErrorMessageResponse($user, []);
+            } elseif(gettype($user) == 'array') {
+                return $this->apiVerificationResponse($user['error'], $user['user'], 2);
+            } else {
+                return $this->apiValidatorErrorResponse('Invalid Parameters', $user->errors());
+            }
+    }
+
+    public function shopper_login(Request $request)
+    {
+        $user = new User();
+        // if($user->login($request)->user_role !== 'shopper'){
+        //     return $this->apiValidatorErrorResponse('Invalid Parameters', []);            
+        // } else {
+            $user = $user->login($request);
+            
+            if($user instanceof \App\User ) {
+                return $this->apiSuccessMessageResponse('Successfully logged in', $user);
+            } else {
+
+            if(gettype($user) == 'string') {
+                return $this->apiErrorMessageResponse($user, []);
+            } elseif(gettype($user) == 'array') {
+                return $this->apiVerificationResponse($user['error'], $user['user'], 2);
+            } else {
+                return $this->apiValidatorErrorResponse('Invalid Parameters', $user->errors());
+            }
         }
+        // }
     }
 
     public function register(Request $request)
@@ -86,9 +149,47 @@ class AuthController extends Controller
         $user->longitude    = $request->longitude;
         $user->image        = 'public/uploads/users/img/user-avatar.png';
         $user->otp          = $token;              
+        $user->identity     = $request->identity;
+        
+        $IDimage = $request->id_image;
+        
+        if ($IDimage) {
+          $id_image = "";
+          if (preg_match('/^data:image\/(\w+);base64,/', $IDimage, $type)) {
+
+            $encoded_base64_image = substr($IDimage, strpos($IDimage, ',') + 1);
+            $type = strtolower($type[1]);
+
+            $decoded_image = base64_decode($encoded_base64_image);
+
+            $resized_image = \Intervention\Image\Facades\Image::make($decoded_image);
+            $path = public_path('uploads/users/identity');
+
+            if (!file_exists($path))
+            {
+                mkdir($path);
+            }
+
+            $id_image = uniqid().'.'.'png';
+
+            \File::put(public_path('uploads/users/identity') . '/' . $id_image,(string) $resized_image->encode());
+            }   
+        }
+
+        $user->id_image  = 'public/uploads/users/identity/'. $id_image;            
         $user->assignRole($request->role);
         $user->save();
+        
+        if($user->verified_by == 'email') {
+            $mail = [
+                'email' => $user->email,
+                'name' => $user->name,
+                'subject' => 'Account verification code',
+            ];
 
+            Helper::sendEmail('accountVerification', ['data' => $user], $mail);
+        }
+        
         $record = new BankInfo();
         $record->user_id = $user->id;
         $record->fullname = $request->name;
@@ -98,7 +199,6 @@ class AuthController extends Controller
         $record->branch = $request->branch;
         $record->save();
     
-
         $image = $request->vehicle_image;
         $licenseImg = $request->license;
         $data = new Vehicle();
@@ -171,16 +271,8 @@ class AuthController extends Controller
         } else {
             return $this->apiValidatorErrorResponse('Invalid Parameters', $user->errors());
         }
-
-        if($user->verified_by == 'email') {
-            $data = [
-                'email' => $user->email,
-                'name' => $user->name,
-                'subject' => 'Account verification code',
-            ];
-
-            Helper::sendEmail('accountVerification', ['data' => $data], $data);
-        }       
+//  dd($user->verified_by);
+        
     }
 
     public function verifyOtp(Request $request)
@@ -222,7 +314,7 @@ class AuthController extends Controller
 
             $message = "The Otp Code has been sent to your registered email";
             
-            return $this->apiErrorMessageResponse($message);
+            return $this->apiSuccessMessageResponse($message);
         }
 
         if(gettype($user) == 'string') {
@@ -294,6 +386,12 @@ class AuthController extends Controller
     public function getProfile(Request $request)
     {
         $data['records'] = (new User())->getProfile($request, Auth::user()->id);
+        return $this->apiSuccessMessageResponse('success', $data);
+    }
+    
+    public function getShopperProfile(Request $request)
+    {
+        $data['records'] = (new User())->shopperProfile($request, Auth::user()->id);
         return $this->apiSuccessMessageResponse('success', $data);
     }
 
@@ -445,7 +543,7 @@ class AuthController extends Controller
         try
         {
             $record = new User();
-            $record = $record->AppleAuth($request);
+            $record = $record->userAppleAuth($request);
 
             if (!$record instanceof User) 
             {
@@ -533,6 +631,23 @@ class AuthController extends Controller
 
         if ($rider) {
             return $this->apiSuccessMessageResponse('Coordinate Updated Successfully');
+        }
+    }
+    
+    public function getCoordinate(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'riderID' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return $this->apiValidatorErrorResponse('Invalid Parameters', $validator->errors());
+        }
+
+        $rider = DB::table('users')->where('id', $request->riderID)->select('id', 'name', 'latitude', 'longitude')->first();
+
+        if($rider){
+            return $this->apiSuccessMessageResponse('success', $rider);            
         }
     }
 }

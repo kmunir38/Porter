@@ -17,7 +17,13 @@ class GetProfile extends JsonResource
             'longitude' => (float)$this->longitude,
             'earning' => $this->earnings,
             'country_code' => $this->country_code,
-            'deliveries' => $this->deliveries,
+            'deliveries' => $this->rider_deliveries,
+            'cancel' => $this->cancel_orders,
+            'zip_code' => $this->zip_code,
+            'description' => $this->description,
+            'dob' => $this->dob,
+            'identity' => $this->identity,
+            'id_image' => $this->id_image,
             'cancel' => $this->cancel_orders,
             'ratings' => $this->ratings
         ];

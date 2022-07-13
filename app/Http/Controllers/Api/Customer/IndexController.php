@@ -165,6 +165,12 @@ class IndexController extends Controller
                 'customer_longitude' => $add->longitude];
         
         } else {
+            if($data->latitude == NULL){
+                return response()->json([
+                    'status' => 2,
+                    'message' => 'Please Add Atleast One Address'
+                    ]);
+            }
 
         $latitude   = $data->latitude;
         $longitude  = $data->longitude;

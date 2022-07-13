@@ -18,6 +18,8 @@ use App\Item;
 use App\ItemCategory;
 use App\ItemExpertise;
 use App\User;
+use App\CuisineType;
+use App\Setting;
 use DB;
 use Str;
 
@@ -46,7 +48,6 @@ class IndexController extends Controller
         $validator = Validator::make($request->all(), [
             'name'              => 'required',
             'price'             => 'required|numeric',
-            'restaurant_id'     => 'required|exists:users,id',
             'image'             => 'required',
             // 'start_date'        => 'required|date'     
         ]);
@@ -59,6 +60,7 @@ class IndexController extends Controller
         $item->price            = $request->price;
         $item->ingredients      = $request->ingredients;
         $item->restaurant_id    = $request->restaurant_id; 
+        $item->grocery_id    = $request->grocery_id; 
         $item->category_id      = $request->category_id;        
                 
         if ($request->image) {
@@ -91,6 +93,7 @@ class IndexController extends Controller
         $item->expertise   = $request->expertise;
         $item->start_date  = $request->start_date;
         $item->end_date    = $request->end_date;
+        $item->qr_code     = $request->qr_code;
         $item->description = $request->description;      
         $item->save();
         
@@ -144,6 +147,7 @@ class IndexController extends Controller
         $item->discount    = $request->discount;
         $item->start_date  = $request->start_date;
         $item->end_date    = $request->end_date;
+        $item->qr_code     = $request->qr_code;
         $item->description = $request->description;      
         $item->save();
         
@@ -201,7 +205,9 @@ class IndexController extends Controller
 
     public function latestOffers(Request $request)
     {
-        $records = Item::where('discount', '>', 0 )->get();
+        $records = Item::where('discount', '>', 0 )
+        ->where('start_date', '<=' ,date('Y-m-d', strtotime(now())))
+        ->where('end_date', '>=' ,date('Y-m-d', strtotime(now())))->get();
         // return $data;
         $result = ViewOffers::collection($records)->toArray($request);
         if(count($records) > 0){
@@ -217,6 +223,7 @@ class IndexController extends Controller
 
     public function getItemsbyCategory(Request $request)
     {
+        // dd($request->groceryID);
         $item = Item::query();
 
         if (!empty($request->catID)) {
@@ -226,13 +233,17 @@ class IndexController extends Controller
         if (!empty($request->restID)) {
             $item = $item->where('restaurant_id', $request->restID);
         }
+        
+        if (!empty($request->groceryID)) {
+            $item = $item->where('grocery_id', $request->groceryID);
+        }
 
         if (!empty($request->expertiseID)) {
             $item = $item->where('expertise', $request->expertiseID);
         }
 
         $item = $item->get();
-
+        
        // $item = Item::where('category_id', $request->catID)->where('restaurant_id', $request->restID)->get();
        $result = GetByCategory::collection($item)->toArray($request);
         if ($item) {
@@ -382,4 +393,64 @@ class IndexController extends Controller
         ]);
         }
     }
+    
+    public function getAllCusineTypes()
+    {
+        $record = CuisineType::select('id', 'name')->get();
+        if(count($record) > 0){
+        return $this->apiSuccessMessageResponse('success', $record);
+        } else {
+            return response()->json([
+            'status' => 0,
+            'message' => 'No Record Found',
+            'data' => []
+        ]);
+        }
+    }
+    
+    public function getFilters()
+    { 
+        $prices = [
+          'min' => '5',
+          'max' => '1000'
+        ];
+        
+        $distances = [
+          ['id' => 1, 'distance' => '1km - 5km'],
+          ['id' => 2, 'distance' => '6km - 10km'],
+          ['id' => 3, 'distance' => '11km - 15km']
+          ];
+
+      $data['prices']    = $prices;
+      $data['distances'] = $distances;
+      return $this->apiSuccessMessageResponse('success', $data);
+    }
+    
+    public function getPriceWithVat(Request $request)
+    {
+        $vat = Setting::where('name', 'vat')->first(); 
+        $discounted = $request->amount / 100 * $vat->value; 
+        
+        $data['vat_amount'] = $discounted;
+        $data['total_amount'] = $discounted += $request->amount;
+        $data['vat'] = $vat->value;
+       
+        return $this->apiSuccessMessageResponse('success', $data);
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 }

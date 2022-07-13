@@ -7,11 +7,12 @@ class View extends JsonResource
     public function toArray($request)
     {   
         return [
-            'id'        => $this->id ?? '',
-            'user' => $this->sender->name ?? '',
-            'userImage' => $this->sender->image ?? '',
+            'id'    => $this->id ?? '',
+            'order_id'        => $this->trigger_id ?? '',
+            'sender_name'  => $this->sender->name ?? '',
+            'sender_image' => $this->sender->image ?? '',
             'title' => $this->title ?? '',
-            'content' => $this->content,  
+            'content' => $this->message,  
             'deliver_time' => $this->created_at->diffForHumans()
         ];
     }

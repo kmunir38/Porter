@@ -13,6 +13,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::get('tawkto', function() {
+    return view('tawkto');
+});
+
 Route::get('/', function () {
     return redirect('/login');
 });
@@ -103,6 +107,8 @@ Route::group(['namespace' => 'Admin', 'prefix' => 'admin', 'middleware' => ['aut
         Route::get('shoppers/{id}/edit', 'IndexController@edit')->name('shopper.edit')->middleware('permission:shopper-edit');
         Route::put('shoppers/{id}', 'IndexController@update')->name('shopper.update')->middleware('permission:shopper-edit');
         Route::any('shoppers/{id}/destroy', 'IndexController@destroy')->name('shopper.destroy')->middleware('permission:shopper-delete');
+        Route::get('assinging-grocery/{id}', 'IndexController@getAssignView')->name('shopper.assign')->middleware('permission:shopper-delete');
+        Route::post('assinging-grocery/{id}', 'IndexController@assignGrocery')->name('shopper.assignGrocery')->middleware('permission:shopper-delete');
     });
 
      Route::group(['namespace' => 'Grocery'], function (){

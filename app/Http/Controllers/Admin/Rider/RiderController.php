@@ -20,10 +20,7 @@ class RiderController extends Controller
      */
     public function index(Request $request)
     {
-        $users = User::whereHas('roles', function ($query) {
-            return $query->whereNotIn('name',['Customer','Admin']);
-        });
-        $users = $users->orderBy('id', 'desc')->get();
+        $users = User::role('rider')->latest()->get();
         return view('admin.riders.index',compact('users'));
     }
     

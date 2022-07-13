@@ -16,11 +16,23 @@ use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
     // Route::get('app', 'Coupon\IndexController@index');
-
 	// Customer Auth Start Created By MYTECH MAESTRO
 	Route::group(['prefix' => 'customer'], function() {
+        Route::get('converter/{amount}', 'Order\IndexController@converter');
+        Route::get('orange/{order_id}', 'Order\IndexController@orangeMoney');
+        Route::get('ligdi/{order_id}', 'Order\IndexController@ligdiCash');
+	    Route::get('ligdi-callback', 'Order\IndexController@ligdiCallback');
+        Route::get('ligdi-wallet/{customer_id}/{amount}', 'Order\IndexController@ligdiCashWallet');
+	    Route::get('ligdi-wallet-callback', 'Order\IndexController@ligdiCallbackWallet');
+	    Route::get('payment-success', function() {
+	        return 'Success';
+	    })->name('callback-success');
+	    
+	    Route::get('payment-failure', function() {
+	        return 'Failed';
+	    })->name('callback-failure');
 
-        Route::post('login', 'AuthController@login');
+        Route::post('login', 'AuthController@customer_login');
         Route::post('register', 'AuthController@register');
         Route::post('verify-otp', 'AuthController@verifyOtp');
         Route::post('resend-otp', 'AuthController@resendOtp');
@@ -60,7 +72,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
 
     Route::group(['prefix' => 'rider'], function() {
 
-        Route::post('login', 'AuthController@login');
+        Route::post('login', 'AuthController@rider_login');
         Route::post('register', 'AuthController@riderSignup');
         Route::post('verify-otp', 'AuthController@verifyOtp');
         Route::post('resend-otp', 'AuthController@resendOtp');
@@ -82,6 +94,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
             Route::post('/update-profile', 'AuthController@UpdateProfile');
             Route::post('saveUserDeviceToken', 'AuthController@saveUserDeviceToken');
             Route::post('updateCoordinate', 'AuthController@updateCoordinate');
+            Route::get('getCoordinate', 'AuthController@getCoordinate'); 
             Route::get('sign-out', 'AuthController@signOut');
 
         Route::group(['namespace' => 'Rider'], function()
@@ -95,6 +108,8 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
             Route::get('new-order', 'IndexController@newOrder');
             Route::get('countcashorders', 'IndexController@countCashOrders'); 
             Route::post('update-locations', 'IndexController@updateRiderLocation'); 
+            Route::get('get-wallet', 'IndexController@getWalletBalance'); 
+            Route::post('withdraw', 'IndexController@getWithdraw'); 
         });
       });
     });
@@ -143,7 +158,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
 
     Route::group(['prefix' => 'shopper'], function() {
 
-        Route::post('login', 'AuthController@login');
+        Route::post('login', 'AuthController@shopper_login');
         Route::post('register', 'AuthController@register');
         Route::post('verify-otp', 'AuthController@verifyOtp');
         Route::post('resend-otp', 'AuthController@resendOtp');
@@ -159,7 +174,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
 
         Route::group(['middleware' => 'auth:api'], function() 
         {
-            Route::get('/getProfile', 'AuthController@getProfile');
+            Route::get('/getProfile', 'AuthController@getShopperProfile');
             Route::post('change-password', 'AuthController@changePassword');
             Route::post('/update-profile', 'AuthController@UpdateProfile');
             Route::post('saveUserDeviceToken', 'AuthController@saveUserDeviceToken');
@@ -202,7 +217,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
 
     Route::group(['middleware' => 'auth:api'], function(){
 
-        Route::group(['prefix' => 'items', 'namespace' => 'items', ], function(){
+        Route::group(['prefix' => 'items', 'namespace' => 'Items', ], function(){
             Route::get('/', 'IndexController@index');
             Route::post('/create', 'IndexController@store');
             Route::post('/update', 'IndexController@update');
@@ -220,6 +235,9 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
             Route::get('/getAllDiscounted', 'IndexController@getAllDiscounted');
             Route::get('/getItemsByExpertise', 'IndexController@getItemsByExpertise');
             Route::get('/getAllExpertise', 'IndexController@getAllExpertise');
+            Route::get('/get-filters', 'IndexController@getFilters');
+            Route::get('/getAllCusineTypes', 'IndexController@getAllCusineTypes');
+            Route::get('/getPriceWithVat', 'IndexController@getPriceWithVat');
         });        
 
         Route::group(['prefix' => 'orders', 'namespace' => 'Order'], function() {
@@ -233,11 +251,17 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
             Route::post('complete-order', 'IndexController@completeOrder');        
             Route::post('ready-order', 'IndexController@readyOrder');        
             Route::get('getOrderView', 'IndexController@getOrderView');        
-            Route::post('assign', 'IndexController@assignOrder');        
-                   
+            Route::post('assign', 'IndexController@assignOrder');
+            Route::get('getOrderDetails', 'IndexController@orderDetailToRider');                   
+            Route::post('pickup-order', 'IndexController@riderPickOrder');                   
+            Route::get('get-paymentDetails', 'IndexController@getOrderPaymentDetails');  
+            Route::post('payment-proceeding', 'IndexController@paymentProceed');
+            Route::get('getItemByQrCode', 'IndexController@getItemByQrCode'); 
         });
+
         Route::group(['namespace' => 'Notification', 'prefix' => 'notification'], function() {
-            Route::get('/', 'IndexController@index');           
+            Route::get('/', 'IndexController@index'); 
+            Route::post('/delete', 'IndexController@destroy'); 
         });
 
         Route::group(['namespace' => 'Card', 'prefix' => 'cards'], function() {
@@ -249,9 +273,13 @@ Route::group(['prefix' => 'v1', 'namespace' => 'Api'], function() {
         Route::group(['prefix' => 'saveDeviceToken'], function() {
             Route::post('/', 'AuthController@saveDeviceToken');              
         });  
-    });  
+        
+        Route::group(['namespace' => 'Rating', 'prefix' => 'rating'], function() {
+            Route::post('/add-rating', 'IndexController@addRatings');              
+        }); 
+    }); 
+
     Route::group(['prefix' => 'contents', 'namespace' => 'Content'], function() {
             Route::get('/', 'IndexController@index');        
     });  
-
 }); 

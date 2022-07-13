@@ -16,7 +16,8 @@ class GetProfile extends JsonResource
             'longitude' => $this->longitude,
             'country_code' => $this->country_code,
             'image' => $this->image,
-            'earning' => $this->earnings
+            'earning' => $this->earnings,
+            'wallet' => $this->wallet
         ];
     }
 }

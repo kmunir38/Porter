@@ -11,7 +11,6 @@ class Details extends JsonResource
         return [
             'id'            => $this->id ?? '',
             'name'          => $this->name ?? '',
-            'restaurant_id' => $this->restaurant_id ?? '',
             'category'      => $this->category->name ?? '',
             'category_id'   => $this->category_id ?? '',            
             'course_type'   => $this->course_type ?? '',
@@ -20,17 +19,16 @@ class Details extends JsonResource
             'image'         => $this->image ?? '',
             'discount'      => $this->discount ?? '',
             'vegi'          => $this->vegi ?? '',
-            'expertise'     => $this->expert->namespace ?? '',
+            'expertise'     => $this->expert->name ?? '',
             'start_date'    => $this->start_date ?? '',
             'end_date'      => $this->end_date ?? '',
             'latitude'      => $this->latitude ?? '',
             'longitude'     => $this->longitude ?? '',
             'description'   => $this->description ?? '',
             'status'        => $this->status ?? '',
-            'ratings'        => $this->ratings ?? '',
-            'count_ratings'  => $this->count_rating ?? '',
-            'restaurant'    => $this->restaurant->name ?? '',            
-            'restaurant'  => (new GetVendor($this->restaurant))->resolve()
+            'ratings'       => $this->ratings ?? '',
+            'count_ratings' => $this->count_rating ?? '',     
+            'vendor'        => (new GetVendor($this->restaurant ?? $this->grocery))->resolve()
         ];
     }
 }   
